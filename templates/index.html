@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if "user" not in session %}
+        <h1>Please sign in to your Goodreads account to use Readerboard:</h1>
+        <p><a href="#">Login Here</a></p>
+    {% else %}
+        <h1>You are a goodreads user!  Here are some books:</h1>
+        <ul>
+            <li>book</li>
+            <li>book</li>
+            <li>book</li>
+            <li>book</li>
+        </ul>
+    {% endif %}
+{% endblock %}

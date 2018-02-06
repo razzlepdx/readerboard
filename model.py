@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-import datetime
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -13,7 +13,7 @@ class User(db.Model):
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(30), nullable=False)
     gr_url = db.Column(db.String(150), nullable=True)
-    gr_id = db.Column(db.Integer(20), nullable=False)
+    gr_id = db.Column(db.Integer, nullable=False)
 
     friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",
@@ -34,8 +34,8 @@ class Friendship(db.Model):
     __tablename__ = "friendships"
 
     friendship_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    user_id = db.Column(db.Integer, db.foreignKey("users.user_id"), nullable=False)
-    friend_id = db.Column(db.Integer, db.foreignKey("users.user_id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    friend_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
 
 
 class Book(db.Model):
@@ -47,7 +47,7 @@ class Book(db.Model):
     title = db.Column(db.String(150), nullable=False)
     author_fname = db.Column(db.String(25), nullable=True)
     author_lname = db.Column(db.String(25), nullable=True)
-    author_gr_id = db.Column(db.Integer(25), unique=True, nullable=False)
+    author_gr_id = db.Column(db.Integer, unique=True, nullable=False)
 
     def __repr__(self):
         """ Provides helpful info when printing a Book object. """
@@ -64,8 +64,8 @@ class Review(db.Model):
     __tablename__ = "reviews"
 
     review_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    book_id = db.Column(db.Integer, db.foreignKey("books.book_id"), nullable=False)
-    user_id = db.Column(db.Integer, db.foreignKey("users.user_id"), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey("books.book_id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     text = db.Column(db.UnicodeText, nullable=True)
     star_rating = db.Column(db.Integer, nullable=True)
     review_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -93,7 +93,7 @@ class Shelf(db.Model):
     __tablename__ = "shelves"
 
     shelf_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    user_id = db.Column(db.Integer, db.foreignKey("users.user_id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     gr_url = db.Column(db.String(150), nullable=True)  # TODO find out about this
     exclusive = db.Column(db.Boolean, default=False, nullable=False)
@@ -137,7 +137,7 @@ class Challenge(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.UnicodeText, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
-    start_date = db.Column(db.Datetime, default=datetime.utcnow)
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
     goal_num = db.Column(db.Integer, nullable=True)
 
     user = db.relationship("User", backref="challenges")
@@ -186,7 +186,7 @@ class Format(db.Model):
     book_format = db.Column(db.String(50), nullable=False)
 
     def __repr__(self):
-        """ Provides helpful info when printing a Type object. """
+        """ Provides helpful info when printing a Format object. """
 
         return "<Format format_id={}, book_format{}>".format(self.format_id,
                                                              self.book_format)
@@ -198,7 +198,7 @@ class Edition(db.Model):
     __tablename__ = "editions"
 
     ed_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=False)  # set to ISBN
-    type_id = db.Column(db.Integer, db.ForeignKey("types.type_id"), nullable=False)
+    format_id = db.Column(db.Integer, db.ForeignKey("formats.format_id"), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey("books.book_id"), nullable=False)
     pic_url = db.Column(db.String(150), nullable=True)
     publisher = db.Column(db.String(150), nullable=False)
@@ -208,7 +208,7 @@ class Edition(db.Model):
     # to see if this can be put together manually via the GR ID
     gr_id = db.Column(db.Integer, nullable=False)
 
-    book_type = db.relationship("Type")
+    book_format = db.relationship("Format")
     book = db.relationship("Book", backref="editions")
 
     def __repr__(self):
