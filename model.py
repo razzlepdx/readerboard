@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
+import datetime
 
-db= SQLAlchemy()
+db = SQLAlchemy()
+
 
 class User(db.Model):
     """ User model. """
@@ -13,7 +15,7 @@ class User(db.Model):
     gr_url = db.Column(db.String(150), nullable=True)
     gr_id = db.Column(db.Integer(20), nullable=False)
 
-    friends = db.relationship("User", # have to add in both directions - 2 adds to db for each friendship
+    friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",
                               primaryjoin="User.user_id==Friendship.user_id",
                               secondaryjoin="User.user_id==Friendshop.friend_id")
@@ -42,19 +44,18 @@ class Book(db.Model):
     __tablename__ = "books"
 
     book_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    name = db.Column(db.String(150), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
     author_fname = db.Column(db.String(25), nullable=True)
     author_lname = db.Column(db.String(25), nullable=True)
     author_gr_id = db.Column(db.Integer(25), unique=True, nullable=False)
 
-
     def __repr__(self):
         """ Provides helpful info when printing a Book object. """
 
-        return "<Book book_id={}, name={}, author={} {}>".format(self.book_id,
-                                                                 self.name,
-                                                                 self.author_fname,
-                                                                 self.author_lname)
+        return "<Book book_id={}, title={}, author={} {}>".format(self.book_id,
+                                                                  self.title,
+                                                                  self.author_fname,
+                                                                  self.author_lname)
 
 
 class Review(db.Model):
@@ -66,11 +67,12 @@ class Review(db.Model):
     book_id = db.Column(db.Integer, db.foreignKey("books.book_id"), nullable=False)
     user_id = db.Column(db.Integer, db.foreignKey("users.user_id"), nullable=False)
     text = db.Column(db.UnicodeText, nullable=True)
-    star_rating = db.Column(db.Integer, nullable=False)
+    star_rating = db.Column(db.Integer, nullable=True)
     review_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    start_read_date = db.Column(db.DateTime, nullable=False)
-    end_read_date = db.Column(db.DateTime, nullable=False)
+    start_read_date = db.Column(db.DateTime, nullable=True)
+    end_read_date = db.Column(db.DateTime, nullable=True)
     gr_url = db.Column(db.String(150), unique=True, nullable=True)  # TODO: find out if this returns URL
+    private = db.Column(db.Boolean, default=False, nullable=False)
 
     book = db.relationship("Book", backref="reviews")
     user = db.relationship("User", backref="reviews")
@@ -78,10 +80,11 @@ class Review(db.Model):
     def __repr__(self):
         """ Provides helpful info when printing a Review object. """
 
-        return "<Review review_id={}, book={}, user={}, stars={}>".format(self.review_id,
-                                                                          self.book.name,
-                                                                          self.user_id,
-                                                                          self.star_rating)
+        return "<Review review_id={}, book={}, user={}, stars={}, private={}>".format(self.review_id,
+                                                                                      self.book.name,
+                                                                                      self.user_id,
+                                                                                      self.star_rating,
+                                                                                      self.private)
 
 
 class Shelf(db.Model):
@@ -93,15 +96,18 @@ class Shelf(db.Model):
     user_id = db.Column(db.Integer, db.foreignKey("users.user_id"), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     gr_url = db.Column(db.String(150), nullable=True)  # TODO find out about this
+    exclusive = db.Column(db.Boolean, default=False, nullable=False)
+
     books = db.relationship("Book", secondary="shelfbooks")
     user = db.relationship("User", backref="shelves")
 
     def __repr__(self):
         """ Provides helpful info when printing a Shelf object. """
 
-        return "<Shelf shelf_id={}, name={}, user_id={}>".format(self.shelf_id,
-                                                                 self.name,
-                                                                 self.user_id)
+        return "<Shelf shelf_id={}, name={}, user_id={}, exclusive={}>".format(self.shelf_id,
+                                                                               self.name,
+                                                                               self.user_id,
+                                                                               self.exclusive)
 
 
 class ShelfBook(db.Model):
@@ -118,7 +124,7 @@ class ShelfBook(db.Model):
 
         return "<Shelfbook s_b_id={}, shelf={}, book={}>".format(self.shelf_book_id,
                                                                  self.shelf.name,
-                                                                 self.book.name)
+                                                                 self.book.title)
 
 
 class Challenge(db.Model):
@@ -141,6 +147,7 @@ class Challenge(db.Model):
                             secondaryjoin='Review.book_id == Book.book_id',
                             viewonly=True,
                             backref=db.backref("challenges"))
+
     def __repr__(self):
         """ Provides helpful info when printing a Challenge object. """
 
@@ -170,19 +177,19 @@ class ChallengePoint(db.Model):
                                                                              self.user_id)
 
 
-class Type(db.Model):
-    """ Type model. """
+class Format(db.Model):
+    """ Format model. """
 
-    __tablename__ = "types"
+    __tablename__ = "formats"
 
-    type_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    book_type = db.Column(db.String(50), nullable=True)
+    format_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    book_format = db.Column(db.String(50), nullable=False)
 
     def __repr__(self):
         """ Provides helpful info when printing a Type object. """
 
-        return "<Type type_id={}, book_type{}>".format(self.type_id,
-                                                       self.book_type)
+        return "<Format format_id={}, book_format{}>".format(self.format_id,
+                                                             self.book_format)
 
 
 class Edition(db.Model):
@@ -203,7 +210,6 @@ class Edition(db.Model):
 
     book_type = db.relationship("Type")
     book = db.relationship("Book", backref="editions")
-
 
     def __repr__(self):
         """ Provides helpful infor when printing an Edition object. """
