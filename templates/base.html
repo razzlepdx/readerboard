@@ -2,15 +2,51 @@
 <html>
     <head>
         <title>Readerboard</title>
+        <link rel="stylesheet" type="text/css" href="../static/css/styles.css">
     </head>
     <body>
         <nav>
-            <p>Readerboard</p>
+            <p>
+                Readerboard
+                <span class="logout" style="float:right">
+                    {% if "user" not in session %}
+                        <a href="/signin">Login</a>
+                    {% else %}
+                        <a href="/logout">Logout</a>
+                    {% endif%}
+                </span>
+            </p>
         </nav>
 
         <hr>
+            {% with messages = get_flashed_messages() %}
+
+                {% if messages %}
+                    <ul class=flashes>
+
+                    {% for message in messages %}
+
+                        <li>{{ message }}</li>
+
+                    {% endfor %}
+
+                    </ul>
+                {% endif %}
+
+            {% endwith %}
+
 
             {% block content%}
+
             {% endblock %}
+
+        <!-- Script files
+        ===================-->
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.js"
+            integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+            crossorigin="anonymous">
+        </script>
+        <script src="../static/js/oauth.js" type="text/javascript"></script>
     </body>
 </html>

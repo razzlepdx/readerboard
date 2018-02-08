@@ -13,7 +13,7 @@ class User(db.Model):
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(30), nullable=False)
     gr_url = db.Column(db.String(150), nullable=True)
-    gr_id = db.Column(db.Integer, nullable=False)
+    gr_id = db.Column(db.Integer, nullable=True)
 
     friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>Please sign up for Readerboard here:</h3>
+    <form action="/auth/goodreads", method="POST">
+        <div>
+            <input type="text" name="email" placeholder="Enter your email here." required>
+        </div>
+        <div>
+            <input type="password" name="password" placeholder="Please choose a password." required>
+        </div>
+        <div>
+            <input type="submit" value="Connect to my Goodreads account!">
+        </div>
+    </form>
+    <p>Already a Readerboard user?  <a href="/signin">Sign in</a></p>
+{% endblock %}
