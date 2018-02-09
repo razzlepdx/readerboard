@@ -3,11 +3,13 @@ from flask import Flask, render_template, request, session, redirect, flash  # w
 import os
 from rauth.service import OAuth1Service, OAuth1Session
 from helpers import email_is_valid, pass_is_valid
+from parser import book_search_results
+import requests
+import untangle
 
 app = Flask(__name__)
 app.secret_key = "secretssssssssss"
 
-connect_to_db(app)
 
 GR_KEY = os.environ["GR_KEY"]
 GR_SECRET = os.environ["GR_SECRET"]
@@ -27,7 +29,9 @@ goodreads = OAuth1Service(
 def landing_page():
     """ Displays user data, or redirects to sign up form. """
 
-    if "user" in session:
+    print session
+
+    if 'user' in session:
         return render_template("index.html")
 
     else:
@@ -41,18 +45,22 @@ def user_signup():
     if request.method == "GET":
         return render_template("signup_form.html")
 
-    # this code runs for post requests
+    # post request logic starts here
     email = request.form.get("email")
     password = request.form.get("password")
 
     if email_is_valid(email):
-        flash("It looks like you are already signed up for Readerboard!  Try signing in instead. ")
+
+        flash("It looks like you are already signed up for Readerboard!  Try signing in instead.")
         return redirect("/signin")
+
     else:
+
         new_user = User(email=email, password=password)
         db.session.add(new_user)
         db.session.commit()
-        session["user"] = new_user.user_id
+        session['user'] = new_user.user_id
+
         return redirect("/auth/goodreads")
 
 
@@ -63,7 +71,7 @@ def user_signin():
     if request.method == "GET":
         return render_template("signin_form.html")
 
-    #code for post requests to this route
+    # post request logic starts here
     email = request.form.get("email")
     password = request.form.get("password")
 
@@ -80,17 +88,33 @@ def user_signin():
         return redirect("/signin")
 
 
-@app.route("/auth/goodreads", methods=["POST"])
+@app.route("/book_search", methods=["POST"])
+def search_book():
+    """ Processes a user's book search from main search bar and displays results. """
+
+    title = request.form.get("search")
+    books = book_search_results(GR_KEY, title)
+
+    return render_template("index.html", books=books)
+
+# Routes for initial OAuth approval
+#===================================
+
+
+@app.route("/auth/goodreads", methods=["GET"])
 def get_oauth():
     """ Processes signup form and makes request for GR user authorization token. """
 
     # initial app authorization request - not tied to specific user
     request_token, request_token_secret = goodreads.get_request_token(header_auth=True)
+
     # assign request tokens to session for future use
     session['request_token'] = request_token
     session['request_token_secret'] = request_token_secret
+
     # url takes user to Goodreads and presents them with option to authorize readerboard
     authorize_url = goodreads.get_authorize_url(request_token)
+
     # send user to goodreads
     return redirect(authorize_url)
 
@@ -99,16 +123,24 @@ def get_oauth():
 def get_oauth_token():
     """ Callback URL for goodreads oauth process. """
 
+    # make a request to goodreads authorization url, and pass in request tokens
     gr_session = goodreads.get_auth_session(session['request_token'], session['request_token_secret'])
-    print gr_session
+
     ACCESS_TOKEN = gr_session.access_token
-    print ACCESS_TOKEN
+    print "*******Access token is: " + ACCESS_TOKEN
     ACCESS_TOKEN_SECRET = gr_session.access_token_secret
-    print ACCESS_TOKEN_SECRET
+    print "*******Secret token is: " + ACCESS_TOKEN_SECRET
+
+    # TODO: Add these variables to User model
+    # user = User.query.get(session["user"])
+    # user.access_token = ACCESS_TOKEN
+    # user.access_token_secret = ACCESS_TOKEN_SECRET
+    # db.session.commit()
 
     return redirect("/")
 
 
 if __name__ == "__main__":
     app.debug = True
+    connect_to_db(app)
     app.run(host="0.0.0.0")

@@ -1,11 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-        <h1>You are a goodreads user!  Here are some books:</h1>
+    {# <h1>You are an authorized goodreads user!  Here are some books:</h1>
         <ul>
             <li>book</li>
             <li>book</li>
             <li>book</li>
             <li>book</li>
-        </ul>
+        </ul> #}
+
+        <form action="/book_search", method="POST">
+            <input type="text" name="search" placeholder="Enter name of book to search here">
+            <input type="submit" value="Search!">
+        </form>
+
+        {% if books %}
+            {% for book in books %}
+                <h3> <a href="http://goodreads.com/book/show/{{ book["book_id"] }}">{{ book["title"] }}</a></h3>
+                <h4>{{ book["author_fname"] }}</h4>
+                <img src="{{ book["image_url"]}}">
+            {% endfor %}
+        {% endif %}
 {% endblock %}

@@ -18,7 +18,7 @@ class User(db.Model):
     friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",
                               primaryjoin="User.user_id==Friendship.user_id",
-                              secondaryjoin="User.user_id==Friendshop.friend_id")
+                              secondaryjoin="User.user_id==Friendship.friend_id")
 
     def __repr__(self):
         """ Provides helpful info when printing a User object. """

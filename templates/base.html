@@ -9,7 +9,7 @@
             <p>
                 Readerboard
                 <span class="logout" style="float:right">
-                    {% if "user" not in session %}
+                    {% if not session %}
                         <a href="/signin">Login</a>
                     {% else %}
                         <a href="/logout">Logout</a>
