@@ -14,6 +14,8 @@ class User(db.Model):
     password = db.Column(db.String(30), nullable=False)
     gr_url = db.Column(db.String(150), nullable=True)
     gr_id = db.Column(db.Integer, nullable=True)
+    access_token = db.Column(db.String(100), nullable=True)
+    access_token_secret = db.Column(db.String(100), nullable=True)
 
     friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",

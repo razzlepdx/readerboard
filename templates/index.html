@@ -13,12 +13,16 @@
             <input type="text" name="search" placeholder="Enter name of book to search here">
             <input type="submit" value="Search!">
         </form>
-
         {% if books %}
-            {% for book in books %}
-                <h3> <a href="http://goodreads.com/book/show/{{ book["book_id"] }}">{{ book["title"] }}</a></h3>
-                <h4>{{ book["author_fname"] }}</h4>
-                <img src="{{ book["image_url"]}}">
-            {% endfor %}
+            {% if books|length > 0 %}
+                {% for book in books %}
+                    <h3> <a href="http://goodreads.com/book/show/{{ book["book_id"] }}">{{ book["title"] }}</a></h3>
+                    <h4>{{ book["author_fname"] }}</h4>
+                    <img src="{{ book["image_url"]}}">
+                    <button><a href="/book_detail/{{ book_id }}">See Details</a></button>
+                {% endfor %}
+            {% elif books|length == 0 %}
+                <h5>Sorry, we couldn't find any books with that title.</h5>
+            {% endif %}
         {% endif %}
 {% endblock %}

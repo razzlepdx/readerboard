@@ -9,23 +9,51 @@ def book_search_results(key, title):
     query = requests.get("https://www.goodreads.com/search.xml", params=payload)
 
     doc = untangle.parse(query.content)
-    print doc
-    gr = doc.GoodreadsResponse
 
-    search = gr.search
-
-    results = search.results
+    results = doc.GoodreadsResponse.search.results
 
     books = []
 
-    for i in range(20):
-        book = {}
+    if len(results) > 0:
+        for work in results.work:
+            book = {}
 
-        book['title'] = results.work[i].best_book.title.cdata.encode('utf8')
-        book['book_id'] = int(results.work[i].best_book.id.cdata.encode('utf8'))
-        book['author_id'] = int(results.work[i].best_book.author.id.cdata.encode('utf8'))
-        book['author_fname'] = results.work[i].best_book.author.name.cdata
-        book['image_url'] = results.work[i].best_book.image_url.cdata.encode('utf8')
-        books.append(book)
+            book['title'] = work.best_book.title.cdata.encode('utf8')
+            book['book_id'] = int(work.best_book.id.cdata.encode('utf8'))
+            book['author_id'] = int(work.best_book.author.id.cdata.encode('utf8'))
+            book['author_fname'] = work.best_book.author.name.cdata
+            book['image_url'] = work.best_book.image_url.cdata.encode('utf8')
+            books.append(book)
 
     return books
+
+
+def get_book_details(book_id):
+    """ Takes in a Goodreads book id and returns a Book object. """
+
+    # call goodreads search method with book id here
+    # parse response to get data needed to create a book object
+
+
+    # book
+    #=====
+    # book_id
+    # title
+    # author name
+    # author_gr_id
+
+
+    # edition
+    #========
+    # ed_id = ISBN
+    # format_id
+    # book_id
+    # pic_url
+    # publisher
+    # num_pages
+    # date
+    # gr_id
+
+    # create dictionary of book object data, subdictionary of edition data
+
+    # return book

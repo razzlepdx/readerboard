@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, session, redirect, flash  # w
 import os
 from rauth.service import OAuth1Service, OAuth1Session
 from helpers import email_is_valid, pass_is_valid
-from parser import book_search_results
+from parser import book_search_results, get_book_details
 import requests
 import untangle
 
@@ -36,6 +36,9 @@ def landing_page():
 
     else:
         return redirect("/signup")
+
+# signup, signin, and logout routes
+#==================================
 
 
 @app.route("/signup", methods=['GET', 'POST'])
@@ -88,6 +91,18 @@ def user_signin():
         return redirect("/signin")
 
 
+@app.route("/logout")
+def logout_user():
+    """ Removes user from session and redirects to login page. """
+
+    session.clear()
+
+    return redirect("/")
+
+# book search results and book detail routes
+#===========================================
+
+
 @app.route("/book_search", methods=["POST"])
 def search_book():
     """ Processes a user's book search from main search bar and displays results. """
@@ -96,6 +111,16 @@ def search_book():
     books = book_search_results(GR_KEY, title)
 
     return render_template("index.html", books=books)
+
+
+@app.route("/book_detail/<book_id>")
+def show_book_details(book_id):
+    """ Displays details about a book and options to shelve, review, and see
+    availability. """
+
+    book = get_book_details(book_id)
+
+    return render_template("book_detail.html", book=book)
 
 # Routes for initial OAuth approval
 #===================================
@@ -132,13 +157,15 @@ def get_oauth_token():
     print "*******Secret token is: " + ACCESS_TOKEN_SECRET
 
     # TODO: Add these variables to User model
-    # user = User.query.get(session["user"])
-    # user.access_token = ACCESS_TOKEN
-    # user.access_token_secret = ACCESS_TOKEN_SECRET
-    # db.session.commit()
+    user = User.query.get(session["user"])
+    user.access_token = ACCESS_TOKEN
+    user.access_token_secret = ACCESS_TOKEN_SECRET
+    db.session.commit()
 
     return redirect("/")
 
+# run app
+#========
 
 if __name__ == "__main__":
     app.debug = True
