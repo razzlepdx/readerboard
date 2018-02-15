@@ -5,7 +5,7 @@ def email_is_valid(email):
     """ Checks user submitted email against db and returns a Boolean. """
 
     try:
-        User.query.filter_by(email=email).one()
+        Account.query.filter_by(email=email).one()
 
     except:
         return False
@@ -19,9 +19,9 @@ def pass_is_valid(password, email):
     if not email_is_valid(email):
         return False
 
-    user = User.query.filter_by(email=email).one()
+    acct = Account.query.filter_by(email=email).one()
 
-    if user.password != password:
+    if acct.password != password:
         return False
 
     return True

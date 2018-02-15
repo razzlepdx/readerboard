@@ -28,11 +28,20 @@ def book_search_results(key, title):
     return books
 
 
-def get_book_details(book_id):
+def get_book_details(book_id, key):
     """ Takes in a Goodreads book id and returns a Book object. """
 
     # call goodreads search method with book id here
+    payload = {"key": key}
+
+    query = requests.get("https://www.goodreads.com/book/show/{}.json".format(book_id), params=payload)
     # parse response to get data needed to create a book object
+
+    doc = untangle.parse(query.content)
+    results = doc.GoodreadsResponse.search.results
+
+    print results
+
 
 
     # book

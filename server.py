@@ -1,5 +1,6 @@
-from model import db, connect_to_db, User, Book, Review, Shelf, Challenge
+from model import db, connect_to_db, Account, User, Book, Review, Shelf, Challenge
 from flask import Flask, render_template, request, session, redirect, flash  # will need jsonify later
+from flask_celery import make_celery
 import os
 from rauth.service import OAuth1Service, OAuth1Session
 from helpers import email_is_valid, pass_is_valid
@@ -8,8 +9,11 @@ import requests
 import untangle
 
 app = Flask(__name__)
+app.config['CELERY_BROKER_URL'] = 'amqp://0.0.0.0//'
+app.config['CELERY_BACKEND'] = 'db+postgresql:///readerboard'
 app.secret_key = "secretssssssssss"
 
+celery = make_celery(app)
 
 GR_KEY = os.environ["GR_KEY"]
 GR_SECRET = os.environ["GR_SECRET"]
@@ -31,7 +35,7 @@ def landing_page():
 
     print session
 
-    if 'user' in session:
+    if 'acct' in session:
         return render_template("index.html")
 
     else:
@@ -59,10 +63,14 @@ def user_signup():
 
     else:
 
-        new_user = User(email=email, password=password)
+        new_user = User()
         db.session.add(new_user)
         db.session.commit()
-        session['user'] = new_user.user_id
+        new_acct = Account(user_id=new_user.user_id, email=email, password=password)
+        db.session.add(new_acct)
+
+        db.session.commit()
+        session['acct'] = new_acct.acct_id
 
         return redirect("/auth/goodreads")
 
@@ -82,8 +90,8 @@ def user_signin():
     valid_pass = pass_is_valid(password, email)
 
     if valid_email and valid_pass:
-        user = User.query.filter_by(email=email).one()
-        session["user"] = user.user_id
+        acct = Account.query.filter_by(email=email).one()
+        session["user"] = acct.user.user_id
         flash("Welcome back! You are now signed in.")
         return redirect("/")
     else:
@@ -118,7 +126,7 @@ def show_book_details(book_id):
     """ Displays details about a book and options to shelve, review, and see
     availability. """
 
-    book = get_book_details(book_id)
+    book = get_book_details(book_id, GR_KEY)
 
     return render_template("book_detail.html", book=book)
 
@@ -156,13 +164,22 @@ def get_oauth_token():
     ACCESS_TOKEN_SECRET = gr_session.access_token_secret
     print "*******Secret token is: " + ACCESS_TOKEN_SECRET
 
-    # TODO: Add these variables to User model
-    user = User.query.get(session["user"])
-    user.access_token = ACCESS_TOKEN
-    user.access_token_secret = ACCESS_TOKEN_SECRET
+    acct = Account.query.get(session["acct"])
+    acct.access_token = ACCESS_TOKEN
+    acct.access_token_secret = ACCESS_TOKEN_SECRET
     db.session.commit()
 
     return redirect("/")
+
+# Celery Tasks
+#=============
+
+
+@celery.task(name="server.hello_world")
+def hello_world():
+    """ Tests celery integration and returns 'Hello, world' """
+
+    return "Hello World"
 
 # run app
 #========

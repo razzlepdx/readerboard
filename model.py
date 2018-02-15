@@ -4,18 +4,36 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
+class Account(db.Model):
+    """ Account model. """
+
+    __tablename__ = "accounts"
+
+    acct_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    email = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(30), nullable=False)
+    access_token = db.Column(db.String(100), nullable=True)
+    access_token_secret = db.Column(db.String(100), nullable=True)
+
+    user = db.relationship("User", backref="account")
+
+    def __repr__(self):
+        """ Provides helpful info when printing an Account object. """
+
+        return "<Account acct_id={}, email={}, user_id={}>".format(self.acct_id,
+                                                                   self.email,
+                                                                   self.user_id)
+
+
 class User(db.Model):
     """ User model. """
 
     __tablename__ = "users"
 
     user_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    email = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(30), nullable=False)
     gr_url = db.Column(db.String(150), nullable=True)
     gr_id = db.Column(db.Integer, nullable=True)
-    access_token = db.Column(db.String(100), nullable=True)
-    access_token_secret = db.Column(db.String(100), nullable=True)
 
     friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",
@@ -25,9 +43,8 @@ class User(db.Model):
     def __repr__(self):
         """ Provides helpful info when printing a User object. """
 
-        return "<User user_id={}, email={}, gr_id={}>".format(self.user_id,
-                                                              self.email,
-                                                              self.gr_id)
+        return "<User user_id={}, gr_id={}>".format(self.user_id,
+                                                    self.gr_id)
 
 
 class Friendship(db.Model):
@@ -216,13 +233,16 @@ class Edition(db.Model):
     def __repr__(self):
         """ Provides helpful infor when printing an Edition object. """
 
-        return "<Edition ed_id={}, >"
+        return "<Edition ed_id={}, title={}, publisher={}, date={}>".format(self.ed_id,
+                                                                            self.book.title,
+                                                                            self.publisher,
+                                                                            self.date)
 
 
 def connect_to_db(app):
     """Connect the database to our Flask app."""
 
-    # Configure to use our SQLite database
+    # Configure to use our postgreSQL database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///readerboard'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
