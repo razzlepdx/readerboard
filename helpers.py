@@ -1,4 +1,4 @@
-from model import db, connect_to_db, User, Book, Review, Shelf, Challenge
+from model import db, connect_to_db, Account, Book, Review, Shelf, Challenge
 
 
 def email_is_valid(email):

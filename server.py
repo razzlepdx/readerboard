@@ -4,7 +4,7 @@ from flask_celery import make_celery
 import os
 from rauth.service import OAuth1Service, OAuth1Session
 from helpers import email_is_valid, pass_is_valid
-from parser import book_search_results, get_book_details
+from parser import book_search_results, get_book_details, get_acct_id, get_user_friends
 import requests
 import untangle
 
@@ -157,16 +157,21 @@ def get_oauth_token():
     """ Callback URL for goodreads oauth process. """
 
     # make a request to goodreads authorization url, and pass in request tokens
-    gr_session = goodreads.get_auth_session(session['request_token'], session['request_token_secret'])
+    gr_session = goodreads.get_auth_session(session['request_token'],
+                                            session['request_token_secret'])
 
     ACCESS_TOKEN = gr_session.access_token
-    print "*******Access token is: " + ACCESS_TOKEN
     ACCESS_TOKEN_SECRET = gr_session.access_token_secret
-    print "*******Secret token is: " + ACCESS_TOKEN_SECRET
 
+    # add OAuth tokens to Account object.
     acct = Account.query.get(session["acct"])
     acct.access_token = ACCESS_TOKEN
     acct.access_token_secret = ACCESS_TOKEN_SECRET
+    # get goodreads ID and url for a user and assign to user record.
+    gr_id, gr_url = get_acct_id(acct, GR_KEY, GR_SECRET)
+    acct.user.gr_id = gr_id
+    acct.user.gr_url = gr_url
+    # commit changes to db.
     db.session.commit()
 
     return redirect("/")
