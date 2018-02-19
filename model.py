@@ -33,7 +33,7 @@ class User(db.Model):
 
     user_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     gr_url = db.Column(db.String(150), nullable=True)
-    gr_id = db.Column(db.Integer, nullable=True)
+    gr_id = db.Column(db.Integer, unique=True, nullable=True)
 
     friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",
@@ -64,9 +64,9 @@ class Book(db.Model):
 
     book_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
-    author_fname = db.Column(db.String(25), nullable=True)
-    author_lname = db.Column(db.String(25), nullable=True)
-    author_gr_id = db.Column(db.Integer, unique=True, nullable=False)
+    author_name = db.Column(db.String(25), nullable=True)
+    author_gr_id = db.Column(db.Integer, unique=True, nullable=True)
+    description = db.Column(db.UnicodeText, nullable=True)
 
     def __repr__(self):
         """ Provides helpful info when printing a Book object. """
@@ -113,6 +113,7 @@ class Shelf(db.Model):
 
     shelf_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    gr_shelf_id = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
     gr_url = db.Column(db.String(150), nullable=True)  # TODO find out about this
     exclusive = db.Column(db.Boolean, default=False, nullable=False)
@@ -223,8 +224,7 @@ class Edition(db.Model):
     publisher = db.Column(db.String(150), nullable=False)
     num_pages = db.Column(db.Integer, nullable=False)
     date = db.Column(db.DateTime, nullable=True)
-    # gr_url = db.Column(db.String(150), nullable=False) # need to do more research
-    # to see if this can be put together manually via the GR ID
+    gr_url = db.Column(db.String(150), nullable=False)
     gr_id = db.Column(db.Integer, nullable=False)
 
     book_format = db.relationship("Format")

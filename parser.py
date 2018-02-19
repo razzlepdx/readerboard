@@ -2,7 +2,15 @@ import untangle
 import requests
 import math
 import time
+import datetime
 from rauth.service import OAuth1Session
+from flask import flash
+from model import User, Friendship, Format, db
+
+#==================================
+# Book search/book details requests
+#==================================
+
 
 def book_search_results(key, title):
     """Parses xml data from book.search call, and returns a list of book objects to display."""
@@ -40,33 +48,66 @@ def get_book_details(book_id, key):
     # parse response to get data needed to create a book object
 
     doc = untangle.parse(query.content)
-    results = doc.GoodreadsResponse.search.results
+    book_data = doc.GoodreadsResponse.book
+    book = {}
 
-    print results
+    # book info
+    #==========
+    book["title"] = book_data.title.cdata.encode("utf8")
+    book["author_name"], book["author_gr_id"] = get_author_data(book_data.authors)
+    book["description"] = book_data.description.cdata.encode("utf8")
 
+    # edition info
+    #=============
+    book["edition"] = {}
 
-    # book
-    #=====
-    # book_id
-    # title
-    # author name
-    # author_gr_id
-
-
-    # edition
-    #========
-    # ed_id = ISBN
-    # format_id
-    # book_id
-    # pic_url
-    # publisher
-    # num_pages
-    # date
-    # gr_id
+    book["edition"]["ed_id"] = book_data.isbn.cdata.encode("utf8")
+    book["edition"]["format_id"] = get_format_id(book_data.format.cdata.encode("utf8"))
+    # book["edition"]["book_id"] = new_book.book_id
+    book["edition"]["pic_url"] = book_data.image_url.cdata.encode("utf8")
+    book["edition"]["publisher"] = book_data.publisher.cdata.encode("utf8")
+    book["edition"]["num_pages"] = book_data.num_pages.cdata.encode("utf8")
+    year = int(book_data.work.original_publication_year.cdata.encode("utf8"))
+    month = int(book_data.work.original_publication_month.cdata.encode("utf8"))
+    day = int(book_data.work.original_publication_day.cdata.encode("utf8"))
+    book["edition"]["date"] = datetime.date(year, month, day)
+    book["edition"]["gr_url"] = book_data.url.cdata.encode("utf8")
+    book["edition"]["gr_id"] = book_data.id.cdata.encode("utf8")
 
     # create dictionary of book object data, subdictionary of edition data
-
     # return book
+    print book
+    return book
+
+
+def get_format_id(gr_format):
+    """ Takes in a goodreads assigned format and returns an integer - format ID."""
+
+    try:
+        format = Format.query.filter_by(book_format=gr_format).one()
+    except:
+        format = Format(book_format=gr_format)
+        db.session.add(format)
+        db.session.commit()
+
+    return format.format_id
+
+
+def get_author_data(authors):
+    """ Takes in author data from GR and returns the name of a single author. """
+
+    try:
+        author = authors.author.name.cdata.encode("utf8")
+        author_id = int(authors.author.id.cdata.encode("utf8"))
+    except:
+        author = authors.author[0].cdata.encode("utf8")
+        author_id = authors.author[0].cdata.encode("utf8")
+
+    return (author, author_id)
+#======================
+# User account requests
+#======================
+
 
 def get_acct_id(acct, KEY, SECRET):
     """ Takes in an account and developer keys and returns a list containing
@@ -88,6 +129,38 @@ def get_acct_id(acct, KEY, SECRET):
 
     return [gr_id, gr_url]
 
+#=========================
+# Shelves related requests
+#=========================
+
+
+def get_all_shelves(acct, KEY, SECRET):
+    ''' Requests all shelves from GR for an authorized user. '''
+    pass
+
+
+def create_shelf(acct):
+    ''' Creates an individual shelf object for an account. '''
+    pass
+
+#=========================
+# Friends related requests
+#=========================
+
+
+def get_friends_page(session, user_id, page):
+    """ Returns a tuple with the total number of friends and the xml response. """
+
+    url = 'https://www.goodreads.com/friend/user'
+    params = {'id': user_id, 'format': 'xml', 'page': page}
+    response = session.get(url, params=params)
+
+    doc = untangle.parse(response.content)
+    total = int(doc.GoodreadsResponse.friends['total'])
+    friends = doc.GoodreadsResponse.friends
+
+    return (total, friends)
+
 
 def get_user_friends(acct, KEY, SECRET):
     """ Takes in an account and developer keys and returns a list of friends for
@@ -102,30 +175,64 @@ def get_user_friends(acct, KEY, SECRET):
 
     user_id = str(acct.user.gr_id)
     current_page = 1
-    url = 'https://www.goodreads.com/friend/user'
-    params = {'id': user_id, 'format': 'xml', 'page': current_page}
-    response = new_gr_session.get(url, params=params)
 
-    # print response.content
-    doc = untangle.parse(response.content)
-    total = int(doc.GoodreadsResponse.friends['total'])
+    total, friends = get_friends_page(new_gr_session, user_id, current_page)
+
+    # check for no friends first
+    if len(friends) == 0:
+        flash("No Goodreads friends found.")
+        print "No friends!"
+
     # friends requests return a list of 30 at a time
     # get total number of pages required.
     total_pages = int(math.ceil(total / float(30)))
-
-    # add_user_friends(friends, acct)
+    add_user_friendships(friends, acct)
+    # check for more than 30 friends
     if total_pages > 1:
-        for i in range(2, total_pages + 1):
 
-            current_page = i
+        current_page = 2
+        while current_page <= total_pages:
+
+            print "******YOU HAVE MORE FRIENDS*******"
+
             # wait 1 second between calls, per GR policy
             time.sleep(1.00)
             # create new query with updated current_page
-            new_query = new_gr_session.get(url, params=params)
-            # parse response
-            doc = untangle.parse(new_query.content)
-            friends = doc.GoodreadsResponse.friends
+            total, friends = get_friends_page(new_gr_session, user_id, current_page)
+            add_user_friendships(friends, acct)
+            current_page += 1
 
-            for user in friends.user:
-                print user.id.cdata.encode('utf8')
-                print user.link.cdata.encode('utf8')
+
+def add_user_friendships(friend_page, acct):
+    """ Creates new users and adds friendships with existing accounts based on GR_id"""
+
+    friends_list = []  # becomes a list of User objects
+
+    for friend in friend_page.user:  # loops over page of 30 friends
+        gr_id = int(friend.id.cdata.encode('utf8'))
+        gr_url = friend.link.cdata.encode('utf8')
+
+        try:
+            # if user is already in db, add friendship only
+            existing_user = User.query.filter_by(gr_id=gr_id).one()
+            friends_list.append(existing_user)
+        except:
+            new_user = User(gr_id=gr_id, gr_url=gr_url)
+            db.session.add(new_user)
+            print "added new friend: " + friend.name.cdata.encode('utf8')
+            friends_list.append(new_user)
+
+    print friends_list
+    db.session.commit()
+
+    # after adding missing users to db, add friendship between authorized account
+    # and all friends
+    for friend in friends_list:
+
+        new_friend = Friendship(user_id=acct.user.user_id, friend_id=friend.user_id)
+        old_friend = Friendship(user_id=friend.user_id, friend_id=acct.user.user_id)
+        db.session.add(new_friend)
+        db.session.add(old_friend)
+        print "Added friendship!"
+
+    db.session.commit()

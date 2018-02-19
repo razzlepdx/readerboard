@@ -28,6 +28,10 @@ goodreads = OAuth1Service(
     base_url='https://www.goodreads.com/'
     )
 
+#=============
+# Landing page
+#=============
+
 
 @app.route("/")
 def landing_page():
@@ -41,6 +45,7 @@ def landing_page():
     else:
         return redirect("/signup")
 
+#==================================
 # signup, signin, and logout routes
 #==================================
 
@@ -106,7 +111,7 @@ def logout_user():
     session.clear()
 
     return redirect("/")
-
+#===========================================
 # book search results and book detail routes
 #===========================================
 
@@ -130,8 +135,9 @@ def show_book_details(book_id):
 
     return render_template("book_detail.html", book=book)
 
+#==================================
 # Routes for initial OAuth approval
-#===================================
+#==================================
 
 
 @app.route("/auth/goodreads", methods=["GET"])
@@ -176,6 +182,7 @@ def get_oauth_token():
 
     return redirect("/")
 
+#=============
 # Celery Tasks
 #=============
 
@@ -186,6 +193,7 @@ def hello_world():
 
     return "Hello World"
 
+#========
 # run app
 #========
 
