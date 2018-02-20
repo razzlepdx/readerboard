@@ -186,7 +186,9 @@ def get_user_friends(acct, KEY, SECRET):
     # friends requests return a list of 30 at a time
     # get total number of pages required.
     total_pages = int(math.ceil(total / float(30)))
+    # creates new users and adds friendship relationships to db
     add_user_friendships(friends, acct)
+
     # check for more than 30 friends
     if total_pages > 1:
 
@@ -201,6 +203,8 @@ def get_user_friends(acct, KEY, SECRET):
             total, friends = get_friends_page(new_gr_session, user_id, current_page)
             add_user_friendships(friends, acct)
             current_page += 1
+
+    return None
 
 
 def add_user_friendships(friend_page, acct):

@@ -27,7 +27,7 @@
         {% endif %}
         {% if shelves|length == 0 %}
             <div>
-                <button>Get my books from Goodreads!</button>
+                <button><a href="/get_shelves/{{ }}">Get my books from Goodreads!</a></button>
             </div>
         {% else %}
             <div>
@@ -36,7 +36,7 @@
         {% endif %}
         {% if friends|length == 0 %}
             <div>
-                <button>Get my friends from Goodreads!</button>
+                <button><a href="/get_friends">Get my friends from Goodreads!</a></button>
             </div>
         {% endif %}
 

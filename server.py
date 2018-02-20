@@ -1,12 +1,10 @@
-from model import db, connect_to_db, Account, User, Book, Review, Shelf, Challenge
+from model import db, connect_to_db, Account, User
 from flask import Flask, render_template, request, session, redirect, flash  # will need jsonify later
 from flask_celery import make_celery
 import os
-from rauth.service import OAuth1Service, OAuth1Session
+from rauth.service import OAuth1Service
 from helpers import email_is_valid, pass_is_valid
 from parser import book_search_results, get_book_details, get_acct_id, get_user_friends
-import requests
-import untangle
 
 app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = 'amqp://0.0.0.0//'
@@ -96,7 +94,7 @@ def user_signin():
 
     if valid_email and valid_pass:
         acct = Account.query.filter_by(email=email).one()
-        session["user"] = acct.user.user_id
+        session["acct"] = acct.acct_id
         flash("Welcome back! You are now signed in.")
         return redirect("/")
     else:
@@ -182,6 +180,29 @@ def get_oauth_token():
 
     return redirect("/")
 
+
+#===============================
+# Get friends, shelves and books
+#===============================
+
+
+@app.route("/get_friends")
+def get_friends():
+    """ Using session data, populates db with user friends. """
+
+    acct = Account.query.get(session["acct"])
+    get_user_friends(acct, GR_KEY, GR_SECRET)
+
+    return render_template("index.html", friends=acct.user.friends)
+
+
+@app.route("/get_shelves/<gr_id>")
+def get_shelves(gr_id):
+    """ Using account in session, populates db with user's shelves. """
+    user = User.query.filter_by(gr_id=gr_id).one()
+    get_user_shelves(gr_id, key)
+
+    return render_template("index.html", shelves=user.shelves)
 #=============
 # Celery Tasks
 #=============

@@ -11,13 +11,13 @@
 
 <h4> Page count: {{ book["edition"]["num_pages"] }}</h4>
 <h4> Publisher: {{ book["edition"]["publisher"] }}</h4>
-<h4> Date published: {{ book["edition"]["published_year"]}}</h4>
-
+<h4> Date published: {{ book["edition"]["date"]}}</h4>
+{# <h4> Description: {{ book["description"]}}</h4> #}
 <div>
 
     <button><a href="/shelve_book">Add to my Shelves</a></button>
     <button>
-        <a href="/review_book/{{ book["edition"]["gr_id"] }}">Add a Review</a>
+        <a href="/review_book/{{ book['edition']['gr_id'] }}">Add a Review</a>
     </button>
 
 </div>
