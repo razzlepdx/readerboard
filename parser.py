@@ -187,7 +187,7 @@ def create_shelf(gr_id, shelf):
 def get_books_page(gr_id, page_num, key):
     """ Given a goodreads id, dev key, and page number, returns a dictionary of
     books on a particular shelf for that user. """
-
+    # TODO: Model this after the friends query functions
     pass
 # get books on a shelf
 
