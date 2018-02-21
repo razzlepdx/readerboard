@@ -12,7 +12,7 @@
 <h4> Page count: {{ book['edition']['num_pages'] }}</h4>
 <h4> Publisher: {{ book['edition']['publisher'] }}</h4>
 <h4> Date published: {{ book['edition']['date']}}</h4>
-<h4> Description: {{ book['description']}}</h4>
+<h4> Description: {% autoescape false %} {{ book['description']}} {% endautoescape %}</h4>
 <div>
 
     <button><a href="/shelve_book/{{ user.gr_id }}">Add to my Shelves</a></button>

@@ -7,7 +7,7 @@ import distutils
 from rauth.service import OAuth1Session
 from flask import flash
 from model import User, Friendship, Format, Shelf, db
-from helpers import get_user_by_gr_id, clean_xml
+from helpers import get_user_by_gr_id, date_is_valid
 
 #==================================
 # Book search/book details requests
@@ -59,7 +59,7 @@ def get_book_details(book_id, key):
     #==========
     book["title"] = book_data.title.cdata.encode("utf8")
     book["author_name"], book["author_gr_id"] = get_author_data(book_data.authors)
-    book["description"] = clean_xml(book_data.description.cdata)
+    book["description"] = book_data.description.cdata
 
     # edition info
     #=============
@@ -69,9 +69,9 @@ def get_book_details(book_id, key):
     book["edition"]["pic_url"] = book_data.image_url.cdata.encode("utf8")
     book["edition"]["publisher"] = book_data.publisher.cdata.encode("utf8")
     book["edition"]["num_pages"] = book_data.num_pages.cdata.encode("utf8")
-    year = int(book_data.work.original_publication_year.cdata.encode("utf8"))
-    month = int(book_data.work.original_publication_month.cdata.encode("utf8"))
-    day = int(book_data.work.original_publication_day.cdata.encode("utf8"))
+    year = date_is_valid(book_data.work.original_publication_year.cdata.encode("utf8"))
+    month = date_is_valid(book_data.work.original_publication_month.cdata.encode("utf8"))
+    day = date_is_valid(book_data.work.original_publication_day.cdata.encode("utf8"))
     book["edition"]["date"] = datetime.date(year, month, day)
     book["edition"]["gr_url"] = book_data.url.cdata.encode("utf8")
     book["edition"]["gr_id"] = book_data.id.cdata.encode("utf8")
@@ -184,23 +184,59 @@ def create_shelf(gr_id, shelf):
     db.session.add(new_shelf)
 
 
+def get_books_page(gr_id, page_num, key):
+    """ Given a goodreads id, dev key, and page number, returns a dictionary of
+    books on a particular shelf for that user. """
+
+    pass
 # get books on a shelf
-# FIXME:  THIS IS STILL BROKEN
-def get_books_from_shelf(gr_id, KEY):
+
+def get_books_from_shelf(gr_id, shelf_name, KEY):
     """ Takes in a user's GR id, the name of a shelf, and dev key, and returns a
     list of book_ids that correspond to that shelf. """
 
-    params = {'v': 2, 'key': KEY, 'per_page': 200, 'page': 1}
+    page_num = 1
+    params = {'v': 2, 'key': KEY, 'shelf': shelf_name, 'per_page': 200, 'page': page_num}
     url = 'https://www.goodreads.com/review/list/' + str(gr_id) + ".xml"
     response = requests.get(url, params=params)
     doc = untangle.parse(response.content)
 
     # print "****** total is: " + total
-    num_pages = doc.GoodreadsResponse.books['numpages']
-    print "****** this person is a monster and has " + num_pages + " of books."
-    books = doc.GoodreadsResponse.books
-    for book in books:
-        print book.title.cdata.encode('utf8')
+    num_books = doc.GoodreadsResponse.reviews['total']
+    total_pages = int(math.ceil(num_books / float(200)))
+
+    if total_pages > 1:
+        page_num = 2
+        while page_num <= total_pages:
+            # make new request with updated page number here
+            books = get_books_page(gr_id, page_num, key)
+            page_num += 1
+
+    print "****** this person is a monster and has " + num_books + " books."
+    books = []
+    books_response = doc.GoodreadsResponse.reviews.review
+    for book in books_response:
+        a_book = {}
+        a_book['title'] = book.book.title.cdata.encode('utf8')
+        a_book['author_name'] = book.book.authors.author.name.cdata.encode('utf8')
+        a_book['author_gr_id'] = int(book.book.authors.author.id.cdata.encode('utf8'))
+        a_book['description'] = book.book.description.cdata
+
+        a_book['edition'] = {}
+        a_book['edition']['format_id'] = get_format_id(book.book.format.cdata.encode('utf8'))
+        a_book['edition']['pic_url'] = book.book.image_url.cdata.encode('utf8')
+        a_book['edition']['publisher'] = book.book.publisher.cdata.encode('utf8')
+        a_book['edition']['gr_url'] = book.book.link.cdata.encode('utf8')
+        a_book['edition']['gr_id'] = int(book.book.id.cdata.encode('utf8'))
+        year = date_is_valid(book.book.publication_year.cdata.encode("utf8"))
+        month = date_is_valid(book.book.publication_month.cdata.encode("utf8"))
+        day = date_is_valid(book.book.publication_day.cdata.encode("utf8"))
+        a_book['edition']['date'] = datetime.date(year, month, day)
+        books.append(a_book)
+
+    print "*******THERE ARE " + str(len(books)) + " ON THIS SHELF*******"
+    return books
+
 
 
 
@@ -225,7 +261,7 @@ def get_friends_page(session, user_id, page):
 
 def get_user_friends(acct, KEY, SECRET):
     """ Takes in an account and developer keys and returns a list of friends for
-    a given user. """
+    a given user. """  # this isn't true - evaluate what needs to be returned tomorrow.
 
     new_gr_session = OAuth1Session(
         consumer_key=KEY,
@@ -260,6 +296,7 @@ def get_user_friends(acct, KEY, SECRET):
 
             # wait 1 second between calls, per GR policy
             time.sleep(1.00)
+
             # create new query with updated current_page
             total, friends = get_friends_page(new_gr_session, user_id, current_page)
             add_user_friendships(friends, acct)

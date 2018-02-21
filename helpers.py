@@ -1,6 +1,6 @@
 from model import db, connect_to_db, Account, User, Book, Review, Shelf, Challenge
-import re
-
+# import re
+# from HTMLParser import HTMLParser
 #==================================
 # terrible form validation goes here
 #==================================
@@ -62,7 +62,20 @@ def get_user_by_gr_id(gr_id):
 #=============
 
 
-def clean_xml(problem_text):
-    find_brackets = re.compile('<.*?>')
-    cleantext = re.sub(find_brackets, ' ', problem_text)
-    return cleantext
+def date_is_valid(xml):
+    """ Takes in a piece of XML and returns an int/default value to be used as
+    part of a book's publishing date. """
+
+    try:
+        date = int(xml)
+    except:
+        date = 1
+
+    return date
+
+# def clean_xml(problem_text):
+#     h = HTMLParser()
+#     cleantext = h.unescape(problem_text)
+#     # find_brackets = re.compile('<.*?>')
+#     # cleantext = re.sub(find_brackets, ' ', problem_text)
+#     return cleantext
