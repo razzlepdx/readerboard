@@ -3,9 +3,11 @@ import requests
 import math
 import time
 import datetime
+import distutils
 from rauth.service import OAuth1Session
 from flask import flash
-from model import User, Friendship, Format, db
+from model import User, Friendship, Format, Shelf, db
+from helpers import get_user_by_gr_id, clean_xml
 
 #==================================
 # Book search/book details requests
@@ -51,19 +53,19 @@ def get_book_details(book_id, key):
     book_data = doc.GoodreadsResponse.book
     book = {}
 
+    # create dictionary of book object data, subdictionary of edition data
+
     # book info
     #==========
     book["title"] = book_data.title.cdata.encode("utf8")
     book["author_name"], book["author_gr_id"] = get_author_data(book_data.authors)
-    book["description"] = book_data.description.cdata.encode("utf8")
+    book["description"] = clean_xml(book_data.description.cdata)
 
     # edition info
     #=============
     book["edition"] = {}
-
     book["edition"]["ed_id"] = book_data.isbn.cdata.encode("utf8")
     book["edition"]["format_id"] = get_format_id(book_data.format.cdata.encode("utf8"))
-    # book["edition"]["book_id"] = new_book.book_id
     book["edition"]["pic_url"] = book_data.image_url.cdata.encode("utf8")
     book["edition"]["publisher"] = book_data.publisher.cdata.encode("utf8")
     book["edition"]["num_pages"] = book_data.num_pages.cdata.encode("utf8")
@@ -74,9 +76,6 @@ def get_book_details(book_id, key):
     book["edition"]["gr_url"] = book_data.url.cdata.encode("utf8")
     book["edition"]["gr_id"] = book_data.id.cdata.encode("utf8")
 
-    # create dictionary of book object data, subdictionary of edition data
-    # return book
-    print book
     return book
 
 
@@ -99,11 +98,12 @@ def get_author_data(authors):
     try:
         author = authors.author.name.cdata.encode("utf8")
         author_id = int(authors.author.id.cdata.encode("utf8"))
-    except:
+    except:  # FIXME: running into errors when book has multiple authors
         author = authors.author[0].cdata.encode("utf8")
         author_id = authors.author[0].cdata.encode("utf8")
 
     return (author, author_id)
+
 #======================
 # User account requests
 #======================
@@ -134,14 +134,75 @@ def get_acct_id(acct, KEY, SECRET):
 #=========================
 
 
-def get_all_shelves(acct, KEY, SECRET):
+def get_shelves_query(user_id, key):
+    """ Makes a request to GR API for a user's shelves and returns the parsed response. """
+
+    url = 'https://www.goodreads.com/shelf/list.xml'
+    params = {"user_id": user_id, "key": key}
+    query = requests.get(url, params=params)
+    response = untangle.parse(query.content)
+
+    return response
+
+
+def get_all_shelves(gr_id, KEY):
     ''' Requests all shelves from GR for an authorized user. '''
-    pass
+
+    response = get_shelves_query(gr_id, KEY)
+    # total is needed for testing purposes only TODO: DELETE THIS LATER
+    total_shelves = response.GoodreadsResponse.shelves['total']
+    print "*****you have this many shelves, you dummo: " + total_shelves
+
+    shelves = response.GoodreadsResponse.shelves.user_shelf
+    shelf_url_base = 'https://www.goodreads.com/review/list/'
+    query_param = '?shelf='
+
+    for shelf in shelves:
+        a_shelf = {}
+        a_shelf['gr_id'] = int(shelf.id.cdata.encode('utf8'))
+        a_shelf['name'] = shelf.name.cdata.encode('utf8')
+        a_shelf['gr_url'] = (shelf_url_base + str(gr_id) + query_param + a_shelf['name']).encode('utf8')
+        a_shelf['exclusive'] = shelf.exclusive_flag.cdata.encode('utf8')
+        create_shelf(gr_id, a_shelf)
+
+    db.session.commit()
+    print "ADDED SOME SHELVES TO THE DB OR SOMETHING"
 
 
-def create_shelf(acct):
+def create_shelf(gr_id, shelf):
     ''' Creates an individual shelf object for an account. '''
-    pass
+    exclusive = distutils.util.strtobool(shelf['exclusive'])
+    user = get_user_by_gr_id(gr_id)
+    print exclusive
+    new_shelf = Shelf(user_id=user.user_id,
+                      gr_shelf_id=shelf['gr_id'],
+                      name=shelf['name'],
+                      gr_url=shelf['gr_url'],
+                      exclusive=exclusive
+                      )
+
+    db.session.add(new_shelf)
+
+
+# get books on a shelf
+# FIXME:  THIS IS STILL BROKEN
+def get_books_from_shelf(gr_id, KEY):
+    """ Takes in a user's GR id, the name of a shelf, and dev key, and returns a
+    list of book_ids that correspond to that shelf. """
+
+    params = {'v': 2, 'key': KEY, 'per_page': 200, 'page': 1}
+    url = 'https://www.goodreads.com/review/list/' + str(gr_id) + ".xml"
+    response = requests.get(url, params=params)
+    doc = untangle.parse(response.content)
+
+    # print "****** total is: " + total
+    num_pages = doc.GoodreadsResponse.books['numpages']
+    print "****** this person is a monster and has " + num_pages + " of books."
+    books = doc.GoodreadsResponse.books
+    for book in books:
+        print book.title.cdata.encode('utf8')
+
+
 
 #=========================
 # Friends related requests

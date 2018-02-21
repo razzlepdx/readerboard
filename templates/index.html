@@ -27,7 +27,7 @@
         {% endif %}
         {% if shelves|length == 0 %}
             <div>
-                <button><a href="/get_shelves/{{ }}">Get my books from Goodreads!</a></button>
+                <button><a href="/get_shelves/{{ acct.user.gr_id }}">Get my books from Goodreads!</a></button>
             </div>
         {% else %}
             <div>

@@ -115,7 +115,7 @@ class Shelf(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     gr_shelf_id = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
-    gr_url = db.Column(db.String(150), nullable=True)  # TODO find out about this
+    gr_url = db.Column(db.String(150), nullable=True)
     exclusive = db.Column(db.Boolean, default=False, nullable=False)
 
     books = db.relationship("Book", secondary="shelfbooks")
