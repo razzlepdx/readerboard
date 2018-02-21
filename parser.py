@@ -183,38 +183,55 @@ def create_shelf(gr_id, shelf):
 
     db.session.add(new_shelf)
 
+#===================
+# Books from shelves
+#===================
 
-def get_books_page(gr_id, page_num, key):
-    """ Given a goodreads id, dev key, and page number, returns a dictionary of
-    books on a particular shelf for that user. """
-    # TODO: Model this after the friends query functions
-    pass
-# get books on a shelf
+
+def get_books_page(gr_id, page_num, shelf_name, KEY):
+    """ Given a goodreads id, dev key, shelf, and page number, returns the xml response
+    and total number of books on a particular shelf for that user. """
+
+    params = {'v': 2, 'key': KEY, 'shelf': shelf_name, 'per_page': 200, 'page': page_num}
+    url = 'https://www.goodreads.com/review/list/' + str(gr_id) + ".xml"
+    response = requests.get(url, params=params)
+    doc = untangle.parse(response.content)
+    num_books = int(doc.GoodreadsResponse.reviews['total'])
+
+    return (doc, num_books)
+
 
 def get_books_from_shelf(gr_id, shelf_name, KEY):
     """ Takes in a user's GR id, the name of a shelf, and dev key, and returns a
     list of book_ids that correspond to that shelf. """
 
     page_num = 1
-    params = {'v': 2, 'key': KEY, 'shelf': shelf_name, 'per_page': 200, 'page': page_num}
-    url = 'https://www.goodreads.com/review/list/' + str(gr_id) + ".xml"
-    response = requests.get(url, params=params)
-    doc = untangle.parse(response.content)
-
-    # print "****** total is: " + total
-    num_books = doc.GoodreadsResponse.reviews['total']
+    response, num_books = get_books_page(gr_id, page_num, shelf_name, KEY)
     total_pages = int(math.ceil(num_books / float(200)))
+    print "******** TOTAL PAGES ARE " + str(total_pages) + "*********"
+    print "****** this person is a monster and has", num_books, "books on their", shelf_name, "shelf."
+    books = []
+    books = make_books_dicts(response, books)
 
     if total_pages > 1:
         page_num = 2
         while page_num <= total_pages:
+            print "*****YOU HAVE MORE BOOKS*****"
+            # pause between calls
+            time.sleep(1.00)
+
             # make new request with updated page number here
-            books = get_books_page(gr_id, page_num, key)
+            response, num_books = get_books_page(gr_id, page_num, shelf_name, KEY)
+            books = make_books_dicts(response, books)
             page_num += 1
 
-    print "****** this person is a monster and has " + num_books + " books."
-    books = []
-    books_response = doc.GoodreadsResponse.reviews.review
+    return books
+
+def make_books_dicts(xml, book_list):
+    """ Takes in an xml response with up to 200 books and the current book list
+    for a particular shelf, and returns the updated book list. """
+
+    books_response = xml.GoodreadsResponse.reviews.review
     for book in books_response:
         a_book = {}
         a_book['title'] = book.book.title.cdata.encode('utf8')
@@ -232,12 +249,18 @@ def get_books_from_shelf(gr_id, shelf_name, KEY):
         month = date_is_valid(book.book.publication_month.cdata.encode("utf8"))
         day = date_is_valid(book.book.publication_day.cdata.encode("utf8"))
         a_book['edition']['date'] = datetime.date(year, month, day)
-        books.append(a_book)
+        book_list.append(a_book)
 
-    print "*******THERE ARE " + str(len(books)) + " ON THIS SHELF*******"
-    return books
+    print "*******THERE ARE " + str(len(book_list)) + " ON THIS SHELF*******"
+
+    return book_list
+
+def create_books_editions(books, gr_id):
+    """ """
 
 
+def add_shelf_books(books, shelf, acct):
+    """ """
 
 
 #=========================
