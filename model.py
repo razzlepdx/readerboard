@@ -65,7 +65,7 @@ class Book(db.Model):
     book_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     author_name = db.Column(db.String(25), nullable=True)
-    author_gr_id = db.Column(db.Integer, unique=True, nullable=True)
+    author_gr_id = db.Column(db.Integer, nullable=True)
     description = db.Column(db.UnicodeText, nullable=True)
 
     def __repr__(self):
@@ -217,9 +217,10 @@ class Edition(db.Model):
 
     __tablename__ = "editions"
 
-    ed_id = db.Column(db.Integer, unique=True, primary_key=True, autoincrement=False)  # set to ISBN
+    ed_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     format_id = db.Column(db.Integer, db.ForeignKey("formats.format_id"), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey("books.book_id"), nullable=False)
+    isbn = db.Column(db.Integer, nullable=True)
     pic_url = db.Column(db.String(150), nullable=True)
     publisher = db.Column(db.String(150), nullable=False)
     num_pages = db.Column(db.Integer, nullable=False)

@@ -73,6 +73,28 @@ def date_is_valid(xml):
 
     return date
 
+
+def valid_isbn(xml):
+    """ Takes in an ISBN xml value and returns an int, or None if no ISBN was found. """
+
+    try:
+        isbn = int(xml)
+    except:
+        isbn = None
+
+    return isbn
+
+
+def valid_page_count(xml):
+    """ Takes in page count and returns an int or default value. """
+
+    try:
+        page_count = int(xml)
+    except:
+        page_count = 0
+
+    return page_count
+
 # def clean_xml(problem_text):
 #     h = HTMLParser()
 #     cleantext = h.unescape(problem_text)
