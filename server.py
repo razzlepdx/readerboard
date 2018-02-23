@@ -52,7 +52,8 @@ def landing_page():
 
     if 'acct' in session:
         acct = get_current_account(session['acct'])
-        return render_template("index.html", acct=acct)
+        search = False
+        return render_template("index.html", acct=acct, search=search)
 
     else:
         return redirect("/signup")
@@ -135,8 +136,9 @@ def search_book():
     title = request.form.get("search")
     books = book_search_results(GR_KEY, title)
     acct = get_current_account(session['acct'])
+    search = True
 
-    return render_template("index.html", books=books, acct=acct)
+    return render_template("index.html", books=books, acct=acct, search=search)
 
 
 @app.route("/book_detail/<book_id>")
@@ -147,6 +149,7 @@ def show_book_details(book_id):
     book = get_book_details(book_id, GR_KEY)
     acct = get_current_account(session["acct"])
     user = get_user_by_acct(acct)
+    session['book'] = book
 
     return render_template("book_detail.html", book=book, user=user)
 
@@ -209,8 +212,9 @@ def get_friends():
 
     acct = get_current_account(session["acct"])
     get_user_friends(acct, GR_KEY, GR_SECRET)
+    search = False
 
-    return render_template("index.html", friends=acct.user.friends, acct=acct)
+    return render_template("index.html", friends=acct.user.friends, acct=acct, search=search)
 
 
 @app.route("/get_shelves/<gr_id>")
@@ -220,8 +224,8 @@ def get_shelves(gr_id):
     acct = get_current_account(session['acct'])
     user = get_user_by_gr_id(gr_id)
     get_all_shelves(gr_id, GR_KEY)
-
-    return render_template("index.html", shelves=user.shelves, acct=acct)
+    search = False
+    return render_template("index.html", shelves=user.shelves, acct=acct, search=search)
 
 #=============
 # Celery Tasks

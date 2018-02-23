@@ -1,3 +1,7 @@
 /*html {
     background-color: silver;
 }*/
+
+.hidden {
+    display:none;
+}

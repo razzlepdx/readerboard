@@ -63,18 +63,18 @@ class Book(db.Model):
     __tablename__ = "books"
 
     book_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    title = db.Column(db.String(150), nullable=False)
-    author_name = db.Column(db.String(25), nullable=True)
+    gr_work_id = db.Column(db.Integer, unique=True, nullable=False)
+    title = db.Column(db.String(500), nullable=False)
+    author_name = db.Column(db.String(100), nullable=True)
     author_gr_id = db.Column(db.Integer, nullable=True)
     description = db.Column(db.UnicodeText, nullable=True)
 
     def __repr__(self):
         """ Provides helpful info when printing a Book object. """
 
-        return "<Book book_id={}, title={}, author={} {}>".format(self.book_id,
-                                                                  self.title,
-                                                                  self.author_fname,
-                                                                  self.author_lname)
+        return "<Book book_id={}, title={}, author={}>".format(self.book_id,
+                                                               self.title,
+                                                               self.author_name)
 
 
 class Review(db.Model):
@@ -118,7 +118,7 @@ class Shelf(db.Model):
     gr_url = db.Column(db.String(150), nullable=True)
     exclusive = db.Column(db.Boolean, default=False, nullable=False)
 
-    books = db.relationship("Book", secondary="shelfbooks")
+    editions = db.relationship("Edition", secondary="shelfbooks")
     user = db.relationship("User", backref="shelves")
 
     def __repr__(self):
@@ -131,20 +131,18 @@ class Shelf(db.Model):
 
 
 class ShelfBook(db.Model):
-    """ Shelf-Book association table. """
+    """ Shelf-Edition   association table. """
 
     __tablename__ = "shelfbooks"
 
     shelf_book_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     shelf_id = db.Column(db.Integer, db.ForeignKey("shelves.shelf_id"), nullable=False)
-    book_id = db.Column(db.Integer, db.ForeignKey("books.book_id"), nullable=False)
+    ed_id = db.Column(db.Integer, db.ForeignKey("editions.ed_id"), nullable=False)
 
     def __repr__(self):
         """ Provides helpful info when printing a shelfbook object. """
 
-        return "<Shelfbook s_b_id={}, shelf={}, book={}>".format(self.shelf_book_id,
-                                                                 self.shelf.name,
-                                                                 self.book.title)
+        return "<Shelfbook s_b_id={}>".format(self.shelf_book_id)
 
 
 class Challenge(db.Model):
@@ -221,8 +219,8 @@ class Edition(db.Model):
     format_id = db.Column(db.Integer, db.ForeignKey("formats.format_id"), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey("books.book_id"), nullable=False)
     isbn = db.Column(db.Integer, nullable=True)
-    pic_url = db.Column(db.String(150), nullable=True)
-    publisher = db.Column(db.String(150), nullable=False)
+    pic_url = db.Column(db.String(500), nullable=True)
+    publisher = db.Column(db.String(150), nullable=True)
     num_pages = db.Column(db.Integer, nullable=False)
     date = db.Column(db.DateTime, nullable=True)
     gr_url = db.Column(db.String(150), nullable=False)

@@ -1,6 +1,5 @@
-from model import db, connect_to_db, Account, User, Book, Review, Shelf, Challenge
-# import re
-# from HTMLParser import HTMLParser
+from model import Account, User
+
 #==================================
 # terrible form validation goes here
 #==================================
@@ -96,8 +95,8 @@ def valid_page_count(xml):
     return page_count
 
 # def clean_xml(problem_text):
-#     h = HTMLParser()
-#     cleantext = h.unescape(problem_text)
-#     # find_brackets = re.compile('<.*?>')
-#     # cleantext = re.sub(find_brackets, ' ', problem_text)
+#     # h = HTMLParser()
+#     # cleantext = h.unescape(problem_text)
+#     find_brackets = re.compile('<.*?>')
+#     cleantext = re.sub(find_brackets, ' ', problem_text)
 #     return cleantext

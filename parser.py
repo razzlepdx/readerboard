@@ -6,11 +6,12 @@ import datetime
 import distutils
 from rauth.service import OAuth1Session
 from flask import flash
-from model import User, Friendship, Format, Shelf, Book, Edition, db
+from model import User, Friendship, Format, Shelf, Book, ShelfBook, Edition, db
 from helpers import (get_user_by_gr_id,
                      date_is_valid,
                      valid_isbn,
                      valid_page_count)
+
 
 #==================================
 # Book search/book details requests
@@ -33,7 +34,7 @@ def book_search_results(key, title):
         for work in results.work:
             book = {}
 
-            book['title'] = work.best_book.title.cdata.encode('utf8')
+            book['title'] = work.best_book.title.cdata
             book['book_id'] = int(work.best_book.id.cdata.encode('utf8'))
             book['author_id'] = int(work.best_book.author.id.cdata.encode('utf8'))
             book['author_fname'] = work.best_book.author.name.cdata
@@ -62,6 +63,7 @@ def get_book_details(book_id, key):
     #==========
     book["title"] = book_data.title.cdata.encode("utf8")
     book["author_name"], book["author_gr_id"] = get_author_data(book_data.authors)
+    book['work_id'] = int(book_data.work.id.cdata.encode('utf8'))
     book["description"] = book_data.description.cdata
 
     # edition info
@@ -172,6 +174,7 @@ def get_all_shelves(gr_id, KEY):
     print "ADDED SOME SHELVES TO THE DB OR SOMETHING"
 
 
+
 def create_shelf(gr_id, shelf):
     ''' Creates an individual shelf object for an account. '''
     exclusive = distutils.util.strtobool(shelf['exclusive'])
@@ -186,10 +189,20 @@ def create_shelf(gr_id, shelf):
 
     db.session.add(new_shelf)
 
+#=================================================
+# Data collection for authorized users and friends
+#=================================================
+
+
+def get_all_books_for_user(user, KEY):
+    """ Given a user object and developer key, gets and creates books, editions,
+    and shelfbook objects for all books on shelves. """
+
+    pass
+
 #===================
 # Books from shelves
 #===================
-
 
 
 def get_books_page(gr_id, page_num, shelf_name, KEY):
@@ -243,6 +256,7 @@ def make_books_dicts(xml, book_list):
         a_book['title'] = book.book.title.cdata.encode('utf8')
         a_book['author_name'] = book.book.authors.author.name.cdata.encode('utf8')
         a_book['author_gr_id'] = int(book.book.authors.author.id.cdata.encode('utf8'))
+        a_book['gr_work_id'] = int(book.book.work.id.cdata.encode('utf8'))
         a_book['description'] = book.book.description.cdata
 
         a_book['edition'] = {}
@@ -276,63 +290,54 @@ def create_books_editions(books, gr_id, shelf_name):
 
     for book in books:
         try:
-            # do book title and author_name pairing exist in db?
-            book_match = db.session.query(Book).filter(Book.title == book['title'], Book.author_gr_id == book['author_gr_id']).one()
-            books_to_shelve.append(book_match.book_id)
+            # check work id to see if any edition is in db already
+            db_book = db.session.query(Book).filter(Book.gr_work_id == book['gr_work_id']).one()
             print "book found!  added id to shelving list."
         except:
             # create new Book object
-            new_book = Book(title=book['title'],
-                            author_name=book['author_name'],
-                            author_gr_id=book['author_gr_id'],
-                            description=book['description'])
+            db_book = Book(title=book['title'],
+                           author_name=book['author_name'],
+                           author_gr_id=book['author_gr_id'],
+                           description=book['description'],
+                           gr_work_id=book['gr_work_id'])
             # add book to db.session
-            db.session.add(new_book)
-            # print "added new book, " + new_book.title
-            # add book_id to books_to_shelve list
-            books_to_shelve.append(new_book.book_id)
+            db.session.add(db_book)
+            db.session.commit()
 
-    # after creating book objects and adding all book_ids to list
-    db.session.commit()
-
-    for edition in books:
-        # check if edition_gr_id is already in db
-        book_match = db.session.query(Book).filter(Book.title == book['title'], Book.author_gr_id == book['author_gr_id']).one()
         try:
-            edition_match = db.session.query(Edition).filter(Edition.gr_id == book['edition']['gr_id']).one()
+            db_edition = db.session.query(Edition).filter(Edition.gr_id == book['edition']['gr_id']).one()
         except:
-            new_edition = Edition(format_id=edition['edition']['format_id'],
-                                  book_id=book_match.book_id,
-                                  isbn=edition['edition']['isbn'],
-                                  pic_url=edition['edition']['pic_url'],
-                                  publisher=edition['edition']['publisher'],
-                                  date=edition['edition']['date'],
-                                  gr_url=edition['edition']['gr_url'],
-                                  gr_id=edition['edition']['gr_id'],
-                                  num_pages=edition['edition']['num_pages'])
-            db.session.add(new_edition)
-            # print "added new edition for " + new_edition.book.title
+            db_edition = Edition(format_id=book['edition']['format_id'],
+                                 book_id=db_book.book_id,
+                                 isbn=book['edition']['isbn'],
+                                 pic_url=book['edition']['pic_url'],
+                                 publisher=book['edition']['publisher'],
+                                 date=book['edition']['date'],
+                                 gr_url=book['edition']['gr_url'],
+                                 gr_id=book['edition']['gr_id'],
+                                 num_pages=book['edition']['num_pages'])
+            db.session.add(db_edition)
+            db.session.commit()
+            # add ed_id to books_to_shelve list
 
-    db.session.commit()
-    print "DONE"
+        books_to_shelve.append(db_edition.ed_id)
+
     add_shelf_books(books_to_shelve, shelf)
 
 
-def add_shelf_books(books, shelf):
-    """ Takes in a list of book_id numbers, and a shelf object, and creates
+def add_shelf_books(edition_ids, shelf):
+    """ Takes in a list of ed_id numbers, and a shelf object, and creates
     Shelfbook objects. """
 
-    for book in books:
+    for ed_id in edition_ids:
         try:
-            shelfbook_match = db.session.query(Shelfbook).filter(Shelfbook.book_id==book.book_id, Shelfbook.shelf_id==shelf.shelf_id).one()
+            shelfbook_match = db.session.query(ShelfBook).filter(ShelfBook.ed_id == ed_id, ShelfBook.shelf_id == shelf.shelf_id).one()
             print "This shelfbook already exists!"
         except:
-            new_shelfbook = Shelfbook(book_id=book.book_id, shelf_id=shelf.shelf_id)
+            new_shelfbook = ShelfBook(ed_id=ed_id, shelf_id=shelf.shelf_id)
             db.session.add(new_shelfbook)
 
     db.session.commit()
-
-
 
 #=========================
 # Friends related requests
@@ -403,7 +408,7 @@ def add_user_friendships(friend_page, acct):
     """ Creates new users and adds friendships with existing accounts based on GR_id"""
 
     friends_list = []  # becomes a list of User objects
-
+    # with db.session.begin():
     for friend in friend_page.user:  # loops over page of 30 friends
         gr_id = int(friend.id.cdata.encode('utf8'))
         gr_url = friend.link.cdata.encode('utf8')
