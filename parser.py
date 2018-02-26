@@ -198,7 +198,41 @@ def get_all_books_for_user(user, KEY):
     """ Given a user object and developer key, gets and creates books, editions,
     and shelfbook objects for all books on shelves. """
 
-    pass
+    gr_id = user.gr_id
+    shelves = user.shelves
+
+    if not shelves:  # make sure user has pulled all shelves
+        shelves = get_all_shelves(gr_id, KEY)
+
+    for shelf in shelves:  # iterate over list of shelves and create books!
+            time.sleep(1.00)
+            get_books_from_shelf(gr_id, shelf.name, KEY)
+            print "Got all books from " + shelf.name + " shelf."
+
+    return
+
+
+def get_all_books_from_friends(user, KEY, SECRET):
+    """ Given a user object and developer key, gets all books from all friends for
+    the specified user.  NOTE: user must have an authorized account to access
+    friends data."""
+
+    friends = user.friends
+
+    if not friends:
+        acct = user.account
+        friends = get_user_friends(acct, KEY, SECRET)
+        if len(friends) == 0:
+            print "no friends data found"
+            flash("Add friends on Goodreads in order to ")
+
+    for friend in friends:
+        time.sleep(1.00)
+        get_all_books_for_user(friend, KEY)
+        print "Got all books for user " + friend.gr_url
+
+    return
+
 
 #===================
 # Books from shelves
@@ -307,6 +341,7 @@ def create_books_editions(books, gr_id, shelf_name):
         try:
             db_edition = db.session.query(Edition).filter(Edition.gr_id == book['edition']['gr_id']).one()
         except:
+            print book
             db_edition = Edition(format_id=book['edition']['format_id'],
                                  book_id=db_book.book_id,
                                  isbn=book['edition']['isbn'],

@@ -17,7 +17,8 @@ from parser import (book_search_results,
                     get_acct_id,
                     get_user_friends,
                     get_all_shelves,
-                    get_books_from_shelf)
+                    get_books_from_shelf,
+                    get_all_books_for_user)
 
 app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = 'amqp://0.0.0.0//'
@@ -214,18 +215,31 @@ def get_friends():
     get_user_friends(acct, GR_KEY, GR_SECRET)
     search = False
 
-    return render_template("index.html", friends=acct.user.friends, acct=acct, search=search)
+    return render_template("index.html", acct=acct, search=search)
 
 
 @app.route("/get_shelves/<gr_id>")
 def get_shelves(gr_id):
     """ Using account in session, populates db with user's shelves. """
 
-    acct = get_current_account(session['acct'])
-    user = get_user_by_gr_id(gr_id)
+    acct = get_current_account(session['acct'])  #  send current account for template
+    # user = get_user_by_gr_id(gr_id)
     get_all_shelves(gr_id, GR_KEY)
     search = False
-    return render_template("index.html", shelves=user.shelves, acct=acct, search=search)
+    return render_template("index.html", acct=acct, search=search)
+
+
+@app.route("/get_books")
+def get_books():
+    """ Using account in session, populates db with all books from the current
+    user's shelves. """
+
+    acct = get_current_account(session['acct'])
+    user = get_user_by_acct(acct)
+    search = False
+    get_all_books_for_user(user, GR_KEY)
+
+    return render_template("index.html", acct=acct, search=search)
 
 #=============
 # Celery Tasks

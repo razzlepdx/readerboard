@@ -27,18 +27,23 @@
             <h5>Sorry, we couldn't find any books with that title.</h5>
         {% endif %}
 
-        {% if shelves|length == 0 %}
+        {% if acct.user.shelves|length == 0 %}
             <div>
-                <button><a href="/get_shelves/{{ acct.user.gr_id }}">Get my books from Goodreads!</a></button>
+                <button><a href="/get_shelves/{{ acct.user.gr_id }}">Get my shelves from Goodreads!</a></button>
             </div>
         {% else %}
             <div>
                 <p>Pick a shelf and see details about your books</p>
             </div>
         {% endif %}
-        {% if friends|length == 0 %}
+        {% if acct.user.friends|length == 0 %}
             <div>
                 <button><a href="/get_friends">Get my friends from Goodreads!</a></button>
+            </div>
+        {% endif %}
+        {% if acct.user.shelves.shelfbooks|length == 0 %}
+            <div>
+                <button><a href="/get_books">Get my books from Goodreads!</a></button>
             </div>
         {% endif %}
 

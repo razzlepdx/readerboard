@@ -218,19 +218,19 @@ class Edition(db.Model):
     ed_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     format_id = db.Column(db.Integer, db.ForeignKey("formats.format_id"), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey("books.book_id"), nullable=False)
-    isbn = db.Column(db.Integer, nullable=True)
+    isbn = db.Column(db.BigInteger, nullable=True)
     pic_url = db.Column(db.String(500), nullable=True)
     publisher = db.Column(db.String(150), nullable=True)
-    num_pages = db.Column(db.Integer, nullable=False)
+    num_pages = db.Column(db.Integer, nullable=True)
     date = db.Column(db.DateTime, nullable=True)
-    gr_url = db.Column(db.String(150), nullable=False)
+    gr_url = db.Column(db.String(500), nullable=False)
     gr_id = db.Column(db.Integer, nullable=False)
 
     book_format = db.relationship("Format")
     book = db.relationship("Book", backref="editions")
 
     def __repr__(self):
-        """ Provides helpful infor when printing an Edition object. """
+        """ Provides helpful info when printing an Edition object. """
 
         return "<Edition ed_id={}, title={}, publisher={}, date={}>".format(self.ed_id,
                                                                             self.book.title,
