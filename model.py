@@ -34,6 +34,9 @@ class User(db.Model):
     user_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     gr_url = db.Column(db.String(150), nullable=True)
     gr_id = db.Column(db.Integer, unique=True, nullable=True)
+    # gr_user_name = db.Column(db.String(100), nullable=True)
+    gr_name = db.Column(db.String(100), nullable=True)
+    image_url = db.Column(db.String(500), nullable=True)
 
     friends = db.relationship("User",  # have to add in both directions - 2 adds to db for each friendship
                               secondary="friendships",
@@ -43,8 +46,9 @@ class User(db.Model):
     def __repr__(self):
         """ Provides helpful info when printing a User object. """
 
-        return "<User user_id={}, gr_id={}>".format(self.user_id,
-                                                    self.gr_id)
+        return "<User user_id={}, gr_id={}, name={}>".format(self.user_id,
+                                                             self.gr_id,
+                                                             self.gr_name)
 
 
 class Friendship(db.Model):
@@ -131,7 +135,7 @@ class Shelf(db.Model):
 
 
 class ShelfBook(db.Model):
-    """ Shelf-Edition   association table. """
+    """ Shelf-Edition association table. """
 
     __tablename__ = "shelfbooks"
 

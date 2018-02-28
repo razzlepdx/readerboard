@@ -125,14 +125,22 @@ def get_acct_id(acct, KEY, SECRET):
         access_token_secret=acct.access_token_secret,
     )
 
+    # get user information through a GR query
     response = new_gr_session.get('https://www.goodreads.com/api/auth_user')
-
     doc = untangle.parse(response.content)
     response = doc.GoodreadsResponse.user
     gr_id = int(response["id"].encode('utf8'))
     gr_url = response.link.cdata.encode('utf8')
+    name = response.name.cdata.encode('utf8')
 
-    return [gr_id, gr_url]
+    # gets rest of user info via a separate GR requests
+    user_info = requests.get('https://www.goodreads.com/user/show/' + str(gr_id) + '.xml?key=' + KEY)
+    user_doc = untangle.parse(user_info.content)
+    user_doc = user_doc.GoodreadsResponse.user
+    # gr_user_name = user_doc.user_name.cdata.encode('utf8')
+    image_url = user_doc.small_image_url.cdata.encode('utf8')
+
+    return (gr_id, gr_url, name, image_url)
 
 #=========================
 # Shelves related requests
@@ -174,7 +182,6 @@ def get_all_shelves(gr_id, KEY):
     print "ADDED SOME SHELVES TO THE DB OR SOMETHING"
 
 
-
 def create_shelf(gr_id, shelf):
     ''' Creates an individual shelf object for an account. '''
     exclusive = distutils.util.strtobool(shelf['exclusive'])
@@ -189,6 +196,18 @@ def create_shelf(gr_id, shelf):
 
     db.session.add(new_shelf)
 
+
+def check_for_shelves(gr_id, key):
+    """ Takes a user's GR id and developer key, checks db for user shelves, and
+    makes a request to Goodreads API to pull shelves as needed, returning a list
+    of Shelf objects. """
+
+    user = User.query.filter_by(gr_id=gr_id).one()
+
+    if not user.shelves:  # make sure user has pulled all shelves
+        get_all_shelves(gr_id, key)
+
+    return user.shelves
 #=================================================
 # Data collection for authorized users and friends
 #=================================================
@@ -199,10 +218,7 @@ def get_all_books_for_user(user, KEY):
     and shelfbook objects for all books on shelves. """
 
     gr_id = user.gr_id
-    shelves = user.shelves
-
-    if not shelves:  # make sure user has pulled all shelves
-        shelves = get_all_shelves(gr_id, KEY)
+    shelves = check_for_shelves(gr_id, KEY)
 
     for shelf in shelves:  # iterate over list of shelves and create books!
             time.sleep(1.00)
@@ -224,11 +240,13 @@ def get_all_books_from_friends(user, KEY, SECRET):
         friends = get_user_friends(acct, KEY, SECRET)
         if len(friends) == 0:
             print "no friends data found"
-            flash("Add friends on Goodreads in order to ")
+            flash("Add friends on Goodreads in order to see their reading history")
 
     for friend in friends:
         time.sleep(1.00)
-        get_all_books_for_user(friend, KEY)
+        shelves = check_for_shelves(friend.gr_id, KEY)
+        get_books_from_shelf(friend.gr_id, 'read', KEY)
+        get_books_from_shelf(friend.gr_id, 'currently-reading', KEY)
         print "Got all books for user " + friend.gr_url
 
     return
@@ -258,6 +276,11 @@ def get_books_from_shelf(gr_id, shelf_name, KEY):
 
     page_num = 1
     response, num_books = get_books_page(gr_id, page_num, shelf_name, KEY)
+
+    # check for 0 books on a shelf and secretly judge that reader
+    if num_books == 0:
+        return
+
     total_pages = int(math.ceil(num_books / float(200)))
     print "******** TOTAL PAGES ARE " + str(total_pages) + "*********"
     print "****** this person is a monster and has", num_books, "books on their", shelf_name, "shelf."
@@ -317,6 +340,7 @@ def create_books_editions(books, gr_id, shelf_name):
     Book/Edition objects as needed. """
 
     books_to_shelve = []
+
     # write query to get shelf_id from gr_id and shelf_name
     user = get_user_by_gr_id(gr_id)
     shelf = db.session.query(Shelf).filter(Shelf.name == shelf_name, Shelf.user == user).one()
@@ -447,13 +471,16 @@ def add_user_friendships(friend_page, acct):
     for friend in friend_page.user:  # loops over page of 30 friends
         gr_id = int(friend.id.cdata.encode('utf8'))
         gr_url = friend.link.cdata.encode('utf8')
+        name = friend.name.cdata.encode('utf8')
+        image_url = friend.small_image_url.cdata.encode('utf8')
 
         try:
             # if user is already in db, add friendship only
             existing_user = User.query.filter_by(gr_id=gr_id).one()
             friends_list.append(existing_user)
         except:
-            new_user = User(gr_id=gr_id, gr_url=gr_url)
+            new_user = User(gr_id=gr_id, gr_url=gr_url,
+                            gr_name=name, image_url=image_url)
             db.session.add(new_user)
             print "added new friend: " + friend.name.cdata.encode('utf8')
             friends_list.append(new_user)

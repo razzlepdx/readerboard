@@ -20,16 +20,20 @@
             <a href="/review_book/{{ book['edition']['gr_id'] }}">Add a Review</a>
         </button>
     </form>
-    <div id="user-shelves" class="hidden">
+    <div id="user-shelves">
         <form action='/shelve_book' method='POST'>
             <input type='hidden' name='book' value='{{ book }}' />
-            {% for shelf in user.shelves %}
-                {% if shelf.exclusive %}
-                    <input type="radio" name="exclusive" value="{{ shelf.name }}" />{{ shelf.name }} </br>
-                {% else %}
-                    <input type="checkbox" name="shelf_name" value="{{ shelf.name }}" />{{ shelf.name }} </br>
-                {% endif %}
-            {% endfor %}
+            <select>
+                {% for shelf in user.shelves %}
+                    {% if shelf.exclusive %}
+                        {#<input type="radio" name="exclusive"#}
+                        <option value="{{ shelf.name }}" />{{ shelf.name }} </option>
+                    {% else %}
+                        {# <input type="checkbox" name="shelf_name" #}
+                        <option value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
+                    {% endif %}
+                {% endfor %}
+            </select>
             <input type='submit' value='Add to my Shelves' />
         </form>
     </div>
@@ -38,5 +42,13 @@
 <h3>Availability and reviews from friends:</h3>
 
 {# Friends that have marked this book as read go here, along with their star rating #}
-
+{% if matches %}
+    {% for match in matches %}
+        <div>
+            <img src="{{ match[0] }}">
+            <p><a href="{{ match[3] }}">{{ match[1] }}</a></p>
+            <p>Shelf: {{ match[2].title()}}</p>
+        </div>
+    {% endfor %}
+{% endif %}
 {% endblock %}

@@ -1,5 +1,5 @@
 import os
-from model import db, connect_to_db, Account, User
+from model import db, connect_to_db, Account, User, Friendship, Shelf, ShelfBook, Edition, Book
 from flask_celery import make_celery
 from rauth.service import OAuth1Service
 from flask import (Flask,
@@ -12,17 +12,20 @@ from helpers import (email_is_valid,
                      get_current_account,
                      get_user_by_acct,
                      get_user_by_gr_id)
+
 from parser import (book_search_results,
                     get_book_details,
                     get_acct_id,
                     get_user_friends,
                     get_all_shelves,
                     get_books_from_shelf,
-                    get_all_books_for_user)
+                    get_all_books_for_user,
+                    get_all_books_from_friends)
 
 app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = 'amqp://0.0.0.0//'
 app.config['CELERY_BACKEND'] = 'db+postgresql:///readerboard'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "secretssssssssss"
 
 celery = make_celery(app)
@@ -150,9 +153,24 @@ def show_book_details(book_id):
     book = get_book_details(book_id, GR_KEY)
     acct = get_current_account(session["acct"])
     user = get_user_by_acct(acct)
-    session['book'] = book
+    # query to get all friends of the current user that have read any edition of
+    # the currently displayed book.
+    friend_matches = db.session.query(Shelf, Edition, ShelfBook, Friendship) \
+                        .filter(Friendship.user_id == user.user_id) \
+                        .filter(Shelf.user_id == Friendship.friend_id) \
+                        .filter(ShelfBook.shelf_id == Shelf.shelf_id) \
+                        .filter(ShelfBook.ed_id == Edition.ed_id) \
+                        .filter(Edition.book_id == Book.book_id) \
+                        .filter(Book.gr_work_id == book['work_id'])\
+                        .all()
+    matches = set()  # create set to prevent duplicate matches (caused by rereading)
+    if friend_matches:
+        for match in friend_matches:
+            user = User.query.get(match.Shelf.user_id)
+            matches.add((user.image_url, user.gr_name, match.Shelf.name, user.gr_url))
 
-    return render_template("book_detail.html", book=book, user=user)
+    matches = list(matches)  # cast matches to a list for iteration in html
+    return render_template("book_detail.html", book=book, user=user, matches=matches)
 
 #==================================
 # Routes for initial OAuth approval
@@ -193,13 +211,28 @@ def get_oauth_token():
     acct.access_token = ACCESS_TOKEN
     acct.access_token_secret = ACCESS_TOKEN_SECRET
     # get goodreads ID and url for a user and assign to user record.
-    gr_id, gr_url = get_acct_id(acct, GR_KEY, GR_SECRET)
+    gr_id, gr_url, name, image_url = get_acct_id(acct, GR_KEY, GR_SECRET)
     acct.user.gr_id = gr_id
     acct.user.gr_url = gr_url
+    acct.user.gr_name = name
+    acct.user.image_url = image_url
     # commit changes to db.
     db.session.commit()
 
     return redirect("/")
+
+#=========================
+# Submit information to GR
+#=========================
+
+
+@app.route("/shelve_book", methods=['POST'])
+def shelve_book_on_gr():
+    """ Creates a post request to Goodreads so that the user-selected book can
+    be added to their shelves, both within Readerboard and on GR. """
+
+    book = request.form.get(['book'])
+    # https://www.goodreads.com/shelf/add_to_shelf.xml
 
 
 #===============================
@@ -222,8 +255,8 @@ def get_friends():
 def get_shelves(gr_id):
     """ Using account in session, populates db with user's shelves. """
 
-    acct = get_current_account(session['acct'])  #  send current account for template
-    # user = get_user_by_gr_id(gr_id)
+    acct = get_current_account(session['acct'])  # send current account for template
+    user = get_user_by_gr_id(gr_id)
     get_all_shelves(gr_id, GR_KEY)
     search = False
     return render_template("index.html", acct=acct, search=search)
@@ -238,6 +271,21 @@ def get_books():
     user = get_user_by_acct(acct)
     search = False
     get_all_books_for_user(user, GR_KEY)
+
+    return render_template("index.html", acct=acct, search=search)
+
+
+@app.route("/get_friend_books")
+def get_friend_books():
+    """ Using the account data from the session, populates db with books for each
+    friend in the user's friend list. """
+
+    acct = get_current_account(session['acct'])
+    user = get_user_by_acct(acct)
+    search = False
+
+    get_all_books_from_friends(user, GR_KEY, GR_SECRET)
+    flash("imported all books from your friends!")
 
     return render_template("index.html", acct=acct, search=search)
 
