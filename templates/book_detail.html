@@ -22,15 +22,15 @@
     </form>
     <div id="user-shelves">
         <form action='/shelve_book' method='POST'>
-            <input type='hidden' name='book' value='{{ book }}' />
-            <select>
+            <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
+            <select name="shelf">
                 {% for shelf in user.shelves %}
                     {% if shelf.exclusive %}
                         {#<input type="radio" name="exclusive"#}
-                        <option value="{{ shelf.name }}" />{{ shelf.name }} </option>
+                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }} </option>
                     {% else %}
                         {# <input type="checkbox" name="shelf_name" #}
-                        <option value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
+                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
                     {% endif %}
                 {% endfor %}
             </select>

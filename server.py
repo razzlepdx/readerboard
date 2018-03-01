@@ -1,7 +1,7 @@
 import os
 from model import db, connect_to_db, Account, User, Friendship, Shelf, ShelfBook, Edition, Book
 from flask_celery import make_celery
-from rauth.service import OAuth1Service
+from rauth.service import OAuth1Service, OAuth1Session
 from flask import (Flask,
                    render_template,
                    request, session,
@@ -230,9 +230,28 @@ def get_oauth_token():
 def shelve_book_on_gr():
     """ Creates a post request to Goodreads so that the user-selected book can
     be added to their shelves, both within Readerboard and on GR. """
+    import pdb; pdb.set_trace()
+    acct = get_current_account(session['acct'])
+    book_id = request.form.get('book')
+    print book_id
+    shelf = request.form.get("shelf")
+    print shelf
+    url = 'https://www.goodreads.com/shelf/add_to_shelf.xml'
+    params = {'name': shelf, 'book_id': book_id}
 
-    book = request.form.get(['book'])
-    # https://www.goodreads.com/shelf/add_to_shelf.xml
+    gr_session = OAuth1Session(
+        consumer_key=GR_KEY,
+        consumer_secret=GR_SECRET,
+        access_token=acct.access_token,
+        access_token_secret=acct.access_token_secret,
+    )
+
+    shelf_request = gr_session.post(url, data=params)
+
+    # new_book =
+    flash("A book has been added to your " + shelf + " shelf!")
+    return render_template("index.html", acct=acct, search=False)
+
 
 
 #===============================
