@@ -2,49 +2,71 @@
 
 {% block content %}
 
-        <form action="/book_search", method="POST">
-            <input type="text" name="search" placeholder="Enter name of book to search here">
-            <input type="submit" value="Search!">
-        </form>
-        {% if books %}
-            {% for book in books %}
-                <h3>
-                    <a href="http://goodreads.com/book/show/{{ book['book_id'] }}">
-                        {% autoescape false %}
-                            {{ book["title"] }}
-                        {% endautoescape %}
-                    </a>
-                </h3>
-                <h4>{{ book["author_fname"] }}</h4>
-                <img src="{{ book['image_url']}}">
-                <button>
-                    <a href="/book_detail/{{ book['book_id'] }}">
-                        See Details
-                    </a>
-                </button>
-            {% endfor %}
-        {% elif search and not books %}
-            <h5>Sorry, we couldn't find any books with that title.</h5>
-        {% endif %}
+    <form action="/book_search", method="POST">
+        <input type="text" name="search" placeholder="Enter name of book to search here">
+        <input type="submit" value="Search!">
+    </form>
+    {% if books %}
+        {% for book in books %}
+            <h3>
+                <a href="http://goodreads.com/book/show/{{ book['book_id'] }}" target="_blank">
+                    {% autoescape false %}
+                        {{ book["title"] }}
+                    {% endautoescape %}
+                </a>
+            </h3>
+            <h4>{{ book["author_fname"] }}</h4>
+            <img src="{{ book['image_url']}}">
+            <button>
+                <a href="/book_detail/{{ book['book_id'] }}">
+                    See Details
+                </a>
+            </button>
+        {% endfor %}
+    {% elif search and not books %}
+        <h5>Sorry, we couldn't find any books with that title.</h5>
+    {% endif %}
 
-        {% if acct.user.shelves|length == 0 %}
-            <div>
-                <button><a href="/get_shelves/{{ acct.user.gr_id }}">Get my shelves from Goodreads!</a></button>
+    {% if acct.user.shelves|length == 0 %}
+        <div>
+            <button><a href="/get_shelves/{{ acct.user.gr_id }}">Get my shelves from Goodreads!</a></button>
+        </div>
+    {% else %}
+        <div>
+            <p>Pick a shelf and see details about your books</p>
+            <div id="user-shelves">
+                <form action='/view_shelf' method='POST'>
+                    <select name="shelf">
+                        {% for shelf in acct.user.shelves %}
+                            {#<input type="radio" name="exclusive"
+                            <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }} </option>
+                            <input type="checkbox" name="shelf_name" #}
+                            <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
+                        {% endfor %}
+                    </select>
+                    <input type='submit' value='View Shelf' />
+                </form>
             </div>
-        {% else %}
-            <div>
-                <p>Pick a shelf and see details about your books</p>
-            </div>
-        {% endif %}
-        {% if acct.user.friends|length == 0 %}
-            <div>
-                <button><a href="/get_friends">Get my friends from Goodreads!</a></button>
-            </div>
-        {% endif %}
-        {% if acct.user.shelves[0].editions|length == 0 %}
-            <div>
-                <button><a href="/get_books">Get my books from Goodreads!</a></button>
-            </div>
-        {% endif %}
+        </div>
+    {% endif %}
+    {% if acct.user.friends|length == 0 %}
+        <div>
+            <button><a href="/get_friends">Get my friends from Goodreads!</a></button>
+        </div>
+    {% endif %}
+    {% if acct.user.shelves[0].editions|length == 0 %}
+        <div>
+            <button><a href="/get_books">Get my books from Goodreads!</a></button>
+        </div>
+    {% endif %}
+    {% if shelfbooks|length > 0 %}
+        <div>
+            {% for book in shelfbooks %}
+                <img src="{{ book.pic_url }}" />
+                <p><a href="/book_detail/{{ book.gr_id }}">{{ book.book.title }}</a></p>
+                <p>{{book.book.author_name}}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
 
 {% endblock %}

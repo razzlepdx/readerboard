@@ -1,5 +1,6 @@
 import untangle
 import requests
+import logging
 import math
 import time
 import datetime
@@ -12,6 +13,7 @@ from helpers import (get_user_by_gr_id,
                      valid_isbn,
                      valid_page_count)
 
+logger = logging.getLogger(__name__)
 
 #==================================
 # Book search/book details requests
@@ -243,6 +245,8 @@ def get_all_books_from_friends(user, KEY, SECRET):
             flash("Add friends on Goodreads in order to see their reading history")
 
     for friend in friends:
+        if friend.user_id < 32:  # TEMPORARY - prevents duplicate data collection
+            continue
         time.sleep(1.00)
         shelves = check_for_shelves(friend.gr_id, KEY)
         get_books_from_shelf(friend.gr_id, 'read', KEY)
@@ -265,9 +269,14 @@ def get_books_page(gr_id, page_num, shelf_name, KEY):
     url = 'https://www.goodreads.com/review/list/' + str(gr_id) + ".xml"
     response = requests.get(url, params=params)
     doc = untangle.parse(response.content)
-    num_books = int(doc.GoodreadsResponse.reviews['total'])
+    try:
+        num_books = int(doc.GoodreadsResponse.reviews['total'])
+        return (doc, num_books)
+    except AttributeError:
+        user_name = get_user_by_gr_id(gr_id)
+        logger.exception("failed importing: %s - %s - %s - %s", shelf_name, gr_id, user_name, doc)
+        return (doc, 0)
 
-    return (doc, num_books)
 
 
 def get_books_from_shelf(gr_id, shelf_name, KEY):
@@ -275,8 +284,10 @@ def get_books_from_shelf(gr_id, shelf_name, KEY):
     list of book_ids that correspond to that shelf. """
 
     page_num = 1
-    response, num_books = get_books_page(gr_id, page_num, shelf_name, KEY)
 
+    response, num_books = get_books_page(gr_id, page_num, shelf_name, KEY)
+    user_name = get_user_by_gr_id(gr_id)
+    logger.info("importing: %s - %s - %s", shelf_name, gr_id, user_name)
     # check for 0 books on a shelf and secretly judge that reader
     if num_books == 0:
         return
@@ -377,8 +388,8 @@ def create_books_editions(books, gr_id, shelf_name):
                                  num_pages=book['edition']['num_pages'])
             db.session.add(db_edition)
             db.session.commit()
-            # add ed_id to books_to_shelve list
 
+        # add ed_id to books_to_shelve list
         books_to_shelve.append(db_edition.ed_id)
 
     add_shelf_books(books_to_shelve, shelf)

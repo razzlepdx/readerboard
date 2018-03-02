@@ -1,5 +1,5 @@
 from model import Account, User
-
+from base64 import b64encode, b64decode
 
 #==================================
 # terrible form validation goes here
@@ -95,3 +95,15 @@ def valid_page_count(xml):
 
     return page_count
 
+
+#==================
+# Overdrive helpers
+#==================
+
+def encode_headers(tokens):
+    """ Given developer keys, returns an encoded string to pass
+    to the Overdrive API. """
+
+    encoded = b64encode(tokens)
+
+    return encoded

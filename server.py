@@ -1,6 +1,7 @@
 import os
 from model import db, connect_to_db, Account, User, Friendship, Shelf, ShelfBook, Edition, Book
 from flask_celery import make_celery
+import logging
 from rauth.service import OAuth1Service, OAuth1Session
 from flask import (Flask,
                    render_template,
@@ -11,7 +12,8 @@ from helpers import (email_is_valid,
                      pass_is_valid,
                      get_current_account,
                      get_user_by_acct,
-                     get_user_by_gr_id)
+                     #get_user_by_gr_id
+                     )
 
 from parser import (book_search_results,
                     get_book_details,
@@ -20,7 +22,9 @@ from parser import (book_search_results,
                     get_all_shelves,
                     get_books_from_shelf,
                     get_all_books_for_user,
-                    get_all_books_from_friends)
+                    get_all_books_from_friends,
+                    # create_books_editions
+                    )
 
 app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = 'amqp://0.0.0.0//'
@@ -156,14 +160,16 @@ def show_book_details(book_id):
     # query to get all friends of the current user that have read any edition of
     # the currently displayed book.
     friend_matches = db.session.query(Shelf, Edition, ShelfBook, Friendship) \
-                        .filter(Friendship.user_id == user.user_id) \
-                        .filter(Shelf.user_id == Friendship.friend_id) \
-                        .filter(ShelfBook.shelf_id == Shelf.shelf_id) \
-                        .filter(ShelfBook.ed_id == Edition.ed_id) \
-                        .filter(Edition.book_id == Book.book_id) \
-                        .filter(Book.gr_work_id == book['work_id'])\
-                        .all()
+        .filter(Friendship.user_id == user.user_id) \
+        .filter(Shelf.user_id == Friendship.friend_id) \
+        .filter(ShelfBook.shelf_id == Shelf.shelf_id) \
+        .filter(ShelfBook.ed_id == Edition.ed_id) \
+        .filter(Edition.book_id == Book.book_id) \
+        .filter(Book.gr_work_id == book['work_id'])\
+        .all()
+
     matches = set()  # create set to prevent duplicate matches (caused by rereading)
+
     if friend_matches:
         for match in friend_matches:
             user = User.query.get(match.Shelf.user_id)
@@ -171,6 +177,26 @@ def show_book_details(book_id):
 
     matches = list(matches)  # cast matches to a list for iteration in html
     return render_template("book_detail.html", book=book, user=user, matches=matches)
+
+
+#====================
+# Shelf detail routes
+#====================
+
+
+@app.route("/view_shelf", methods=['POST'])
+def view_user_shelf():
+    """ Responds to post request from landing page form and renders a list of
+    all books on the selected shelf for an authorized user. """
+
+    # FIXME - running into encoding errors with certain shelves
+    shelf_name = request.form.get('shelf')
+    acct = get_current_account(session['acct'])
+    user = get_user_by_acct(acct)
+    shelf = db.session.query(Shelf).filter(Shelf.name == shelf_name, Shelf.user_id == user.user_id).first()
+    shelfbooks = shelf.editions
+
+    return render_template("index.html", acct=acct, search=False, shelfbooks=shelfbooks)
 
 #==================================
 # Routes for initial OAuth approval
@@ -230,12 +256,11 @@ def get_oauth_token():
 def shelve_book_on_gr():
     """ Creates a post request to Goodreads so that the user-selected book can
     be added to their shelves, both within Readerboard and on GR. """
-    import pdb; pdb.set_trace()
+
     acct = get_current_account(session['acct'])
     book_id = request.form.get('book')
-    print book_id
-    shelf = request.form.get("shelf")
-    print shelf
+    shelf = request.form.get('shelf')
+
     url = 'https://www.goodreads.com/shelf/add_to_shelf.xml'
     params = {'name': shelf, 'book_id': book_id}
 
@@ -248,7 +273,10 @@ def shelve_book_on_gr():
 
     shelf_request = gr_session.post(url, data=params)
 
-    # new_book =
+    # TODO: Create a book/edition/shelfbook object and add them to db.
+    # book = get_book_details(book_id, GR_KEY)
+    # create_books_editions([book], acct.user.gr_id, GR_KEY)
+
     flash("A book has been added to your " + shelf + " shelf!")
     return render_template("index.html", acct=acct, search=False)
 
@@ -275,7 +303,7 @@ def get_shelves(gr_id):
     """ Using account in session, populates db with user's shelves. """
 
     acct = get_current_account(session['acct'])  # send current account for template
-    user = get_user_by_gr_id(gr_id)
+    # user = get_user_by_gr_id(gr_id)
     get_all_shelves(gr_id, GR_KEY)
     search = False
     return render_template("index.html", acct=acct, search=search)
@@ -326,4 +354,12 @@ def hello_world():
 if __name__ == "__main__":
     app.debug = True
     connect_to_db(app)
+    logging.basicConfig(filename='error.log', level=logging.INFO)
+    console = logging.StreamHandler()
+
+    console.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
     app.run(host="0.0.0.0")
