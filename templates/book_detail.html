@@ -21,13 +21,16 @@
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
             <select name="shelf">
                 {% for shelf in user.shelves %}
-                    {% if shelf.exclusive %}
-                        {#<input type="radio" name="exclusive"#}
+                    {# Consider using this block again after Bootstrap is implemented #}
+                    {# {% if shelf.exclusive %} #}
+                        {#<input type="radio" name="exclusive"
                         <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }} </option>
                     {% else %}
-                        {# <input type="checkbox" name="shelf_name" #}
-                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
-                    {% endif %}
+                       <input type="checkbox" name="shelf_name"
+                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br> #}
+                    {# {% endif %} #}
+
+                    <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option>
                 {% endfor %}
             </select>
             <input type='submit' value='Add to my Shelves' />

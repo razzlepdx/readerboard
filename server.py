@@ -15,7 +15,8 @@ from helpers import (email_is_valid,
                      get_user_by_acct,
                      check_ovrdrv_token,
                      get_lib_products,
-                     search_lib_for_copies
+                     search_lib_for_copies,
+                     get_library_details
                      #get_user_by_gr_id
                      )
 
@@ -355,16 +356,27 @@ def get_friend_books():
 #==============================
 
 
-# @app.route("/library")
-# def display_library_details():
-#     """ Displays a page for users to select and view details about their home
-#     library system. """
+@app.route("/library", methods=['GET', 'POST'])
+def display_library_details():
+    """ Displays a page for users to select and view details about their home
+    library system. """
 
-#     if 'lib' in session:
-#         lib = session['lib']
-#         library = get_library_details(lib, OVRDRV_KEY, OVRDRV_SECRET)
+    if request.method == "POST":
+        # post request response goes here
+        library = request.form.get("library_id")
+        session['lib'] = library
+        flash("Thanks for selecting your library system!")
+        return redirect("/library")
 
-#     return True
+    else:
+        if 'lib' in session:
+            lib = session['lib']
+            library = get_library_details(lib, OVRDRV_KEY, OVRDRV_SECRET)
+
+        else:
+            library = None
+
+        return render_template("library_info.html", library=library)
 
 #=============
 # Celery Tasks
@@ -393,6 +405,4 @@ if __name__ == "__main__":
     logging.getLogger('').addHandler(console)
     # run app, populate cache with temp token
     app.run(host="0.0.0.0")
-    session.clear()
     check_ovrdrv_token(OVRDRV_KEY, OVRDRV_SECRET)
-

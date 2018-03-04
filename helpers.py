@@ -150,6 +150,24 @@ def get_lib_products(lib_id, key, secret):
 
     return products_url
 
+#========================
+# Set library preferences
+#========================
+
+
+def get_library_details(lib_id, key, secret):
+    """ Given a library id, and dev keys, returns the name of a given library. """
+
+    token = check_ovrdrv_token(key, secret)
+    url = 'https://api.overdrive.com/v1/libraries/' + lib_id
+    response = requests.get(url,
+                            headers={"User-Agent": "Readerboard",
+                                     "Authorization": "Bearer %s" % token,
+                                     "Content-Type": "application/json"})
+    r = response.json()
+    return r["name"]
+
+
 #==============================================
 # Search and Availability Overdrive API helpers
 #==============================================

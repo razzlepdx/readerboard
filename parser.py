@@ -165,9 +165,6 @@ def get_all_shelves(gr_id, KEY):
     ''' Requests all shelves from GR for an authorized user. '''
 
     response = get_shelves_query(gr_id, KEY)
-    # total is needed for testing purposes only TODO: DELETE THIS LATER
-    total_shelves = response.GoodreadsResponse.shelves['total']
-    print "*****you have this many shelves, you dummo: " + total_shelves
 
     shelves = response.GoodreadsResponse.shelves.user_shelf
     shelf_url_base = 'https://www.goodreads.com/review/list/'
@@ -246,8 +243,8 @@ def get_all_books_from_friends(user, KEY, SECRET):
             flash("Add friends on Goodreads in order to see their reading history")
 
     for friend in friends:
-        if friend.user_id < 32:  # TEMPORARY - prevents duplicate data collection
-            continue
+        # if friend.user_id < 32:  # TEMPORARY - prevents duplicate data collection
+        #     continue
         time.sleep(1.00)
         shelves = check_for_shelves(friend.gr_id, KEY)
         get_books_from_shelf(friend.gr_id, 'read', KEY)
