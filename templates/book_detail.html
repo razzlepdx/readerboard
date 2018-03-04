@@ -38,8 +38,29 @@
     </div>
     <div id="user-reviews" class="hidden">
         <form action="/review_book">
-            <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
-            <p>This will show if the JS is working</p>
+            <input type='hidden' name='book' value='{{ book["book_id"] }}' />
+            <h5>Review this book:</h5>
+            <input type="text" name="text" placeholder="Add your review here" required/> <br>
+            <h5>Star Rating:</h5>
+            <input type="number" name="star_rating" min="1" max="5">
+            <h5>Started Reading:</h5>
+            <input type="date" name="start_read">
+            <h5>Finished Reading:</h5>
+            <input type="date" name="end_read">
+            <h5>Submit this review to Goodreads?</h5>
+            <select name="private">
+                <option name="private" value="f">Yes</option>
+                <option name="private" value="t">No</option>
+            </select>
+            <p> Not submitting this review will still update your Readerboard reading history and stats. </p>
+            <h5>Challenge Points</h5>
+            {% if user.challenges %}
+                {% for challenge in challenges %}
+                    <input type="checkbox" name="challenge" value="{{ challenge.chal_id }}">{{ challenge.name }}<br>
+                {% endfor %}
+            {% else %}
+                <p><a href="#">Add a challenge</a> and track your progress here!</p>
+            {% endif %}
             <input type="submit" value="Send review"/>
         </form>
     </div>
