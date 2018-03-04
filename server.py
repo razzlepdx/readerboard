@@ -1,7 +1,8 @@
 import os
+import logging
 from model import db, connect_to_db, Account, User, Friendship, Shelf, ShelfBook, Edition, Book
 from flask_celery import make_celery
-import logging
+
 from rauth.service import OAuth1Service, OAuth1Session
 from flask import (Flask,
                    render_template,
@@ -12,6 +13,9 @@ from helpers import (email_is_valid,
                      pass_is_valid,
                      get_current_account,
                      get_user_by_acct,
+                     check_ovrdrv_token,
+                     get_lib_products,
+                     search_lib_for_copies
                      #get_user_by_gr_id
                      )
 
@@ -36,6 +40,9 @@ celery = make_celery(app)
 
 GR_KEY = os.environ["GR_KEY"]
 GR_SECRET = os.environ["GR_SECRET"]
+OVRDRV_KEY = os.environ["OVRDRV_KEY"]
+OVRDRV_SECRET = os.environ["OVRDRV_SECRET"]
+WCCLS = os.environ["WCCLS_ID"]
 
 goodreads = OAuth1Service(
     consumer_key=GR_KEY,
@@ -176,7 +183,14 @@ def show_book_details(book_id):
             matches.add((user.image_url, user.gr_name, match.Shelf.name, user.gr_url))
 
     matches = list(matches)  # cast matches to a list for iteration in html
-    return render_template("book_detail.html", book=book, user=user, matches=matches)
+    PRODUCT_URL = get_lib_products(WCCLS, OVRDRV_KEY, OVRDRV_SECRET)
+    lib_copies = search_lib_for_copies(PRODUCT_URL, book, OVRDRV_KEY, OVRDRV_SECRET)
+
+    return render_template("book_detail.html",
+                           book=book,
+                           user=user,
+                           matches=matches,
+                           lib_copies=lib_copies)
 
 
 #====================
@@ -336,6 +350,22 @@ def get_friend_books():
 
     return render_template("index.html", acct=acct, search=search)
 
+#==============================
+# Library Selection and Details
+#==============================
+
+
+# @app.route("/library")
+# def display_library_details():
+#     """ Displays a page for users to select and view details about their home
+#     library system. """
+
+#     if 'lib' in session:
+#         lib = session['lib']
+#         library = get_library_details(lib, OVRDRV_KEY, OVRDRV_SECRET)
+
+#     return True
+
 #=============
 # Celery Tasks
 #=============
@@ -354,12 +384,15 @@ def hello_world():
 if __name__ == "__main__":
     app.debug = True
     connect_to_db(app)
+    # logger setup
     logging.basicConfig(filename='error.log', level=logging.INFO)
     console = logging.StreamHandler()
-
     console.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
-
+    # run app, populate cache with temp token
     app.run(host="0.0.0.0")
+    session.clear()
+    check_ovrdrv_token(OVRDRV_KEY, OVRDRV_SECRET)
+

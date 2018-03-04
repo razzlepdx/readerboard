@@ -1,5 +1,8 @@
 from model import Account, User
 from base64 import b64encode, b64decode
+from werkzeug.contrib.cache import SimpleCache
+import requests
+cache = SimpleCache()
 
 #==================================
 # terrible form validation goes here
@@ -96,14 +99,99 @@ def valid_page_count(xml):
     return page_count
 
 
-#==================
-# Overdrive helpers
-#==================
+#===================================
+# Overdrive helpers - Setup requests
+#===================================
 
-def encode_headers(tokens):
-    """ Given developer keys, returns an encoded string to pass
-    to the Overdrive API. """
 
-    encoded = b64encode(tokens)
+def request_ovr_tkn(key, secret):
+    """ Requests a temporary authorization token from Overdrive API """
 
-    return encoded
+    dev_keys = key + ":" + secret
+    b64_keys = b64encode(dev_keys)
+    params = {"grant_type": "client_credentials"}
+    r = requests.post('https://oauth.overdrive.com/token',
+                      headers={"Authorization": "Basic %s" % b64_keys,
+                               "Content-Type": "application/x-www-form-urlencoded"},
+                      data=params)
+    r = r.json()
+    # tkn_type = r["token_type"]  # should always be type "bearer"
+    access_tkn = r["access_token"]
+
+    return access_tkn
+
+
+def check_ovrdrv_token(key, secret):
+    """ Checks for valid auth token before submitting Overdrive requests -
+    refreshes and resets token with ~ 1hr time limit if not found, and returns
+    a valid token. """
+
+    token = cache.get('ovr_tkn')
+    if token is None:
+        token = request_ovr_tkn(key, secret)
+        cache.set('ovr_tkn', token, timeout=60 * 60)  # set cache to expire in 1 hr.
+
+    return token
+
+
+def get_lib_products(lib_id, key, secret):
+    """ """
+
+    token = check_ovrdrv_token(key, secret)
+    url = 'https://api.overdrive.com/v1/libraries/' + lib_id
+
+    response = requests.get(url,
+                            headers={"User-Agent": "Readerboard",
+                                     "Authorization": "Bearer %s" % token,
+                                     "Content-Type": "application/json",
+                                     "X-Forwarded-For": "0.0.0.0:5000"})
+    r = response.json()
+    products_url = r["links"]["products"]["href"]
+
+    return products_url
+
+#==============================================
+# Search and Availability Overdrive API helpers
+#==============================================
+
+
+def search_lib_for_copies(product_url, book, key, secret):
+    """ Accesses the Overdrive Search API endpoint with a query containing the ISBN
+    of the book selected by the user. Returns the Availability API endpoint and
+    calls the get_availability function. """
+
+    token = check_ovrdrv_token(key, secret)
+    url = product_url + "?limit=50&q=" + book['title'] + "&identifiers=" + str(book['edition']['isbn'])
+    response = requests.get(url,
+                            headers={"User-Agent": "Readerboard",
+                                     "Authorization": "Bearer %s" % token,
+                                     "Content-Type": "application/json"})
+    response = response.json()
+    for product in response['products']:
+        if product['title'] == book['title']:
+            avail_url = product['links']['availability']['href']
+            availability = get_lib_availability(avail_url, key, secret)
+
+            return availability
+
+    return None
+
+
+def get_lib_availability(url, key, secret):
+    """ Get availability information for a given book, if any copies are found
+    in the library collection. """
+
+    token = check_ovrdrv_token(key, secret)
+
+    response = requests.get(url,
+                            headers={"User-Agent": "Readerboard",
+                                     "Authorization": "Bearer %s" % token,
+                                     "Content-Type": "application/json"})
+
+    response = response.json()
+    availability = {"copies": response['copiesOwned'],
+                    "available": response['copiesAvailable'],
+                    "holds": response['numberOfHolds'],
+                    "avail_type": response['availabilityType']}
+
+    return availability

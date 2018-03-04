@@ -47,7 +47,8 @@ def book_search_results(key, title):
 
 
 def get_book_details(book_id, key):
-    """ Takes in a Goodreads book id and returns a Book object. """
+    """ Takes in a Goodreads book id and returns a dictionary of items about a
+    specific book. """
 
     # call goodreads search method with book id here
     payload = {"key": key}

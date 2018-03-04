@@ -15,12 +15,8 @@
 <h4> Description: {% autoescape false %}{{ book['description']}} {% endautoescape %} </h4>
 <div>
     <button id="shelf-button">Shelve this book</button>
-    <form action="/review_book">
-        <button>
-            <a href="/review_book/{{ book['edition']['gr_id'] }}">Add a Review</a>
-        </button>
-    </form>
-    <div id="user-shelves">
+    <button id="review-button">Add a Review</button>
+    <div id="user-shelves" class="hidden">
         <form action='/shelve_book' method='POST'>
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
             <select name="shelf">
@@ -37,9 +33,23 @@
             <input type='submit' value='Add to my Shelves' />
         </form>
     </div>
+    <div id="user-reviews" class="hidden">
+        <form action="/review_book">
+            <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
+            <p>This will show if the JS is working</p>
+            <input type="submit" value="Send review"/>
+        </form>
+    </div>
 </div>
-
-<h3>Availability and reviews from friends:</h3>
+<h3>Availability at local library:</h3>
+{% if lib_copies %}
+    <p>Copies Available: {{ lib_copies['available'] }}</p>
+    <p>Number of Holds: {{ lib_copies['holds'] }}</p>
+    <p>Total Copies Owned: {{ lib_copies['copies'] }}</p>
+{% else %}
+    <p>No copies found at the library!</p>
+{% endif %}
+<h3>Availability from Goodreads friends:</h3>
 
 {# Friends that have marked this book as read go here, along with their star rating #}
 {% if matches %}
@@ -50,5 +60,7 @@
             <p>Shelf: {{ match[2].title()}}</p>
         </div>
     {% endfor %}
+{% else %}
+    <p>It looks like none of your friends have read this book yet!</p>
 {% endif %}
 {% endblock %}
