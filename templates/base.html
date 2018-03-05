@@ -4,6 +4,8 @@
         <title>Readerboard</title>
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="../static/css/styles.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.js">
+        </script>
     </head>
     <body>
         <nav>
@@ -13,11 +15,12 @@
                     {% if not session %}
                         &nbsp;<a href="/signin">Login</a>
                     {% else %}
-                        &nbsp;<a href="/logout">Logout</a>
+                        |&nbsp;
+                        <a href="/challenges">Challenges</a>
+                        |&nbsp;<a href="/logout">Logout</a>
                     {% endif%}
-                </span>
-                <span style="float:right">
-                    <a href="/library">Library System</a> |
+                </span><span style="float:right">
+                    <a href="/library">Library System</a> &nbsp;
                 </span>
             </p>
         </nav>

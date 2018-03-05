@@ -378,6 +378,25 @@ def display_library_details():
 
         return render_template("library_info.html", library=library)
 
+#===========================
+# User Challenge Detail Page
+#===========================
+
+
+@app.route('/challenges', methods=['GET', 'POST'])
+def display_chal_info():
+    """ Displays user specific info about current challenges, and allows
+    a user to create new personal reading challenges. """
+
+    acct = get_current_account(session['acct'])
+    user = acct.user
+
+    if request.method == "POST":
+        flash("New challenge created!")
+        return redirect("/")
+
+    return render_template("challenges.html", user=user)
+
 #=============
 # Celery Tasks
 #=============
