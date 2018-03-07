@@ -2,6 +2,7 @@ from model import Account, User
 from base64 import b64encode, b64decode
 from werkzeug.contrib.cache import SimpleCache
 import requests
+import datetime
 cache = SimpleCache()
 
 #==================================
@@ -33,6 +34,25 @@ def pass_is_valid(password, email):
         return False
 
     return True
+
+
+def make_datetime(date):
+    """ Takes in data from a form input and returns a datetime object. """
+
+    date_list = date.split("-")
+    db_date = datetime.date(int(date_list[0]), int(date_list[1]), int(date_list[2]))
+
+    return db_date
+
+
+def review_is_private(privacy):
+    """ Takes in user form input about a review and returns a boolean for submission
+    to db. """
+
+    if privacy == "t":
+        return True
+
+    return False
 
 #====================
 # db getter functions
@@ -150,6 +170,22 @@ def get_lib_products(lib_id, key, secret):
 
     return products_url
 
+#======================
+# Challenge data graphs
+#======================
+
+
+def get_challenge_data(id, user):
+    """ Takes in a challenge id, and a user object, and returns a dictionary
+    of challenge information to populate a chart.js graph. """
+
+    data_dict = {"labels": ["Christmas Melon",
+                            "Crenshaw", ],
+                 "datasets": [{"data": [300, 50],
+                               "backgroundColor": ["#FF6384",
+                                                   "#36A2EB", ],
+                               "hoverBackgroundColor": ["#FF6384",
+                                                        "#36A2EB", ]}]}
 #========================
 # Set library preferences
 #========================

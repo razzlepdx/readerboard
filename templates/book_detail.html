@@ -16,7 +16,7 @@
 <div>
     <button id="shelf-button">Shelve this book</button>
     <button id="review-button">Add a Review</button>
-    <div id="user-shelves" class="hidden">
+    <div id="user-shelves" class="hidden2">
         <form action='/shelve_book' method='POST'>
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
             <select name="shelf">
@@ -36,9 +36,9 @@
             <input type='submit' value='Add to my Shelves' />
         </form>
     </div>
-    <div id="user-reviews" class="hidden">
-        <form action="/review_book">
-            <input type='hidden' name='book' value='{{ book["book_id"] }}' />
+    <div id="user-reviews" class="hidden2">
+        <form action="/review_book", method="POST">
+            <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
             <h5>Review this book:</h5>
             <input type="text" name="text" placeholder="Add your review here" required/> <br>
             <h5>Star Rating:</h5>

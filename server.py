@@ -1,6 +1,15 @@
 import os
 import logging
-from model import db, connect_to_db, Account, User, Friendship, Shelf, ShelfBook, Edition, Book
+from model import (db,
+                   connect_to_db,
+                   Account,
+                   User,
+                   Friendship,
+                   Shelf,
+                   ShelfBook,
+                   Edition,
+                   Book,
+                   Review)
 from flask_celery import make_celery
 
 from rauth.service import OAuth1Service, OAuth1Session
@@ -8,7 +17,8 @@ from flask import (Flask,
                    render_template,
                    request, session,
                    redirect,
-                   flash)
+                   flash,
+                   jsonify)
 from helpers import (email_is_valid,
                      pass_is_valid,
                      get_current_account,
@@ -16,7 +26,10 @@ from helpers import (email_is_valid,
                      check_ovrdrv_token,
                      get_lib_products,
                      search_lib_for_copies,
-                     get_library_details
+                     get_library_details,
+                     get_challenge_data,
+                     #make_datetime,
+                     #review_is_private
                      #get_user_by_gr_id
                      )
 
@@ -25,7 +38,7 @@ from parser import (book_search_results,
                     get_acct_id,
                     get_user_friends,
                     get_all_shelves,
-                    get_books_from_shelf,
+                    # get_books_from_shelf,
                     get_all_books_for_user,
                     get_all_books_from_friends,
                     # create_books_editions
@@ -295,6 +308,38 @@ def shelve_book_on_gr():
     flash("A book has been added to your " + shelf + " shelf!")
     return render_template("index.html", acct=acct, search=False)
 
+# FIXME - review submission on hold while finishing styling
+# @app.route("/review_book", methods=['POST'])
+# def submit_book_review():
+#     """ Takes in user submitted review data, creates a new Review object, and when
+#     appropriate, submits a review to GR. """
+
+#     acct = get_current_account(session['acct'])
+#     user = acct.user
+
+#     book = get_book_details(request.form.get('book'), GR_KEY)
+
+#     text = request.form.get('text')
+#     rating = request.form.get('star_rating')
+#     start_read = make_datetime(request.form.get('start_read'))
+#     end_read = make_datetime(request.form.get('end_read'))
+#     private = review_is_private(request.form.get('private'))
+
+#     # TODO: add challenge points functionality here
+
+#     new_review = Review(user_id=user.user_id,
+#                         book_id=int(book_id),
+#                         text=text,
+#                         star_rating=int(rating),
+#                         start_read_date=start_read,
+#                         end_read_date=end_read,
+#                         private=private)
+
+#     db.session.add(new_review)
+#     print new_review
+#     db.session.commit()
+
+#     return redirect("/book_detail/" + book_id)
 
 
 #===============================
@@ -397,6 +442,16 @@ def display_chal_info():
 
     return render_template("challenges.html", user=user)
 
+
+@app.route("/challenge-progress/<ch_id>.json")
+def display_challenge_graphs(ch_id):
+    """ Returns data about user challenge progress. """
+
+    acct = get_current_account(session['acct'])
+    user = acct.User
+    challenge_data = get_challenge_data(ch_id, user)
+
+    return jsonify(challenge_data)
 #=============
 # Celery Tasks
 #=============

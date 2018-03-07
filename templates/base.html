@@ -3,58 +3,92 @@
     <head>
         <title>Readerboard</title>
         <meta charset="UTF-8">
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="../static/css/styles.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.js">
         </script>
-    </head>
-    <body>
-        <nav>
-            <p>
-                <a href="/">Readerboard</a>
-                <span class="logout" style="float:right">
-                    {% if not session %}
-                        &nbsp;<a href="/signin">Login</a>
-                    {% else %}
-                        |&nbsp;
-                        <a href="/challenges">Challenges</a>
-                        |&nbsp;<a href="/logout">Logout</a>
-                    {% endif%}
-                </span><span style="float:right">
-                    <a href="/library">Library System</a> &nbsp;
-                </span>
-            </p>
-        </nav>
-
-        <hr>
-            {% with messages = get_flashed_messages() %}
-
-                {% if messages %}
-                    <ul class=flashes>
-
-                    {% for message in messages %}
-
-                        <li>{{ message }}</li>
-
-                    {% endfor %}
-
-                    </ul>
-                {% endif %}
-
-            {% endwith %}
-
-
-            {% block content%}
-
-            {% endblock %}
-
-        <!-- Script files
-        ===================-->
+        <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+        <link href="https://fonts.googleapis.com/css?family=Nixie+One" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Lato:700" rel="stylesheet">
         <script
             src="https://code.jquery.com/jquery-3.3.1.js"
             integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
             crossorigin="anonymous">
         </script>
-        <script src="../static/js/oauth.js" type="text/javascript"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    </head>
+    <body id="bootstrap-overrides">
+
+        <nav class="navbar navbar-default">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="/">
+                <i class="fas fa-align-right"></i>
+                <span id="brand">Readerboard</span>
+              </a>
+            </div>
+              <span class="logout" style="float:right">
+                {% if not session %}
+                    &nbsp;<a href="/signin">Login</a>
+                {% else %}
+                    |&nbsp;
+                    <a href="/challenges">Challenges</a>
+                    |&nbsp;<a href="/logout">Logout</a>
+                {% endif%}
+              </span><span style="float:right">
+                <a href="/library">Library System</a> &nbsp;
+              </span>
+          </div>
+        </nav>
+
+
+        <div class="container">
+            <div class="container">
+                <div class="row">
+                    <div class="alert text-center" role="alert">
+                    {% with messages = get_flashed_messages() %}
+
+                        {% if messages %}
+                            <ul class=flashes>
+
+                            {% for message in messages %}
+
+                                <p>{{ message }}</p>
+
+                            {% endfor %}
+
+                            </ul>
+                        {% endif %}
+
+                    {% endwith %}
+                    </div>
+                </div>
+
+
+                <div class="row search">
+                  <div class="col-sm-8 col-sm-offset-2">
+                    <form role="form" action="/book_search", method="POST">
+                        <div class="input-group">
+                          <input type="text" class="form-control input-sm" name="search" placeholder="Search Goodreads here">
+                          <span class="input-group-btn">
+                            <button class="btn btn-default btn-sm" type="submit"><span class="glyphicon glyphicon-search"></span></button>
+                          </span>
+                        </div>
+                    </form>
+                  </div>
+                </div>
+                {% block content%}
+
+                {% endblock %}
+            </div>
+        </div>
+
+
+        <!-- Script files
+        ===================-->
+
+
+
         <script src="../static/js/clicks.js" type="text/javascript"></script>
     </body>
 </html>
