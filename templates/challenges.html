@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<hr>
+    <div class="challenge-div row">
+        <div class="col-lg-6">
+            <h2 >Personal Reading Challenges</h2>
+            <button id="challenge-form">Add new challenge!</button>
+            <div id="create-challenge" class="hidden2">
+                <form action="/challenges", method="POST">
+                    <h5>Challenge name:</h5>
+                    <input type="text" name="name" required/>
+                    <h5>Challenge Description:</h5>
+                    <input type="text" name="description" required/>
+                    <h5>Starting Date:</h5>
+                    <input type="date" name="start-date">
+                    <h5>Ending Date:</h5>
+                    <input type="date" name="end-date">
+                    <h5>Books read goal:</h5>
+                    <input type="number" min="0" name="goal_num">
+                    <div>
+                        <input type="submit" value="Create Challenge">
+                        <button>Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+    {% for challenge in user.challenges %}
+    <div class='col-lg-6'>
+        <h2>{{ challenge.name }}</h2>
+        <h5>Current progress:</h5>
+        <div class="challenge-chart">
+            <canvas class="barChart" data-challenge-id="{{ challenge. chal_id }}"></canvas>
+            <div id="challengeLegend" class="chart-legend"></div>
+        </div>
+        <div>
+        <h5>Started: {{ challenge.start_date }}</h5>
+        <h5>Ending: {{ challenge.end_date }}</h5>
+        <h5>Description:</h5>
+        <p>{{ challenge.description }}</p>
+        {# <h5>Books counted towards this challenge: </h5> #}
+        {% for book in challenge.books %}
+            <div>
+                <img src="{{ book.editions[0].pic_url }}" />
+                <h5>{{ book.title }}</h5>
+                <p>{{ book.author_name }}</p>
+            </div>
+        {% endfor %}
+        <button> Edit Challenge </button>
+        <button> Mark Challenge Complete </button>
+        <button> Remove Challenge from Profile </button>
+
+    </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<hr>
+<div class="row libraries">
+    <div class="library-div col-lg-6">
+        <h4>Select your library system:</h4>
+        <form action="/library" method="POST">
+            <select name="library_id">
+                <option value="0000" selected /> Pick your library here</option>
+                <option value="1683" />
+                    San Francisco Public Library
+                </option>
+                <option value="2094" />
+                    Oakland Public Library
+                </option>
+                <option value="2931" />
+                    Berkeley Public Library
+                </option>
+                <option value="2265" />
+                    Peninsula Library System
+                </option>
+                <option value="2492" />
+                    Alameda County Library
+                </option>
+                <option value="7630" />
+                    Washington County Cooperative Library Services
+                </option>
+                <option value="4646" />
+                    Multnomah County Library
+                </option>
+            </select>
+            <br>
+            <input type="submit" value="Select Library" />
+        </form>
+    </div>
+    {% if library %}
+        <div class="col-lg-6">
+            <h4>
+                Readerboard is currently checking the following library system for book availability:
+            </h4>
+            <h3>{{ library }}</h3>
+            <p>
+                To change your settings, resubmit the form below.  To access systems not listed here, <a href="#">contact us</a>.
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+
+{% endblock %}

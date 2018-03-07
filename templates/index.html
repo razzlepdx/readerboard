@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
     {# <div class="row search">
       <div class="col-sm-8 col-sm-offset-2">
         <form role="form" action="/book_search", method="POST">
@@ -17,6 +18,7 @@
         <input type="text" name="search" placeholder="Enter name of book to search here">
         <input type="submit" value="Search!">
     </form> -->
+<hr>
     {% if books %}
         <div class="row">
         {% for book in books %}
@@ -33,7 +35,7 @@
                     <h6>{{ book["author_fname"] }}</h6>
                     </div>
 
-                    <img src="{{ book['image_url']}}" alt="{{ book['title'] }}"><br>
+                    <img src="{{ book['image_url']}}" alt="{{ book['title'] }}" title="{{ book['title'] }}"><br>
                     <button class="deets">
                         <a href="/book_detail/{{ book['book_id'] }}">
                             See Details
@@ -44,29 +46,6 @@
         </div>
     {% elif search and not books %}
         <h5>Sorry, we couldn't find any books with that title.</h5>
-    {% endif %}
-
-    {% if acct.user.shelves|length == 0 %}
-        <div>
-            <button><a href="/get_shelves/{{ acct.user.gr_id }}">Get my shelves from Goodreads!</a></button>
-        </div>
-    {% else %}
-        <div>
-            <p>Pick a shelf and see details about your books</p>
-            <div id="user-shelves">
-                <form action='/view_shelf' method='POST'>
-                    <select name="shelf">
-                        {% for shelf in acct.user.shelves %}
-                            {#<input type="radio" name="exclusive"
-                            <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }} </option>
-                            <input type="checkbox" name="shelf_name" #}
-                            <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
-                        {% endfor %}
-                    </select>
-                    <input type='submit' value='View Shelf' />
-                </form>
-            </div>
-        </div>
     {% endif %}
 
     {% if acct.user.friends|length == 0 %}
@@ -89,5 +68,7 @@
             {% endfor %}
         </div>
     {% endif %}
+
+
 
 {% endblock %}

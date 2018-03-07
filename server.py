@@ -202,6 +202,7 @@ def show_book_details(book_id):
 
     return render_template("book_detail.html",
                            book=book,
+                           acct=acct,
                            user=user,
                            matches=matches,
                            lib_copies=lib_copies)
@@ -406,6 +407,7 @@ def display_library_details():
     """ Displays a page for users to select and view details about their home
     library system. """
 
+    acct = get_current_account(session['acct'])
     if request.method == "POST":
         # post request response goes here
         library = request.form.get("library_id")
@@ -421,7 +423,7 @@ def display_library_details():
         else:
             library = None
 
-        return render_template("library_info.html", library=library)
+        return render_template("library_info.html", library=library, acct=acct)
 
 #===========================
 # User Challenge Detail Page
@@ -440,7 +442,7 @@ def display_chal_info():
         flash("New challenge created!")
         return redirect("/")
 
-    return render_template("challenges.html", user=user)
+    return render_template("challenges.html", user=user, acct=acct)
 
 
 @app.route("/challenge-progress/<ch_id>.json")

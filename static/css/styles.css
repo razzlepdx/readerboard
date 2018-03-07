@@ -30,7 +30,8 @@ body {
 
 .container {
     background-color: white;
-    min-height:650px;
+    min-height:300px;
+    padding-bottom: 5%;
 }
 
 .book-display {
@@ -85,19 +86,92 @@ div.row.search {
     color: #C06014;
 }
 
-#bootstrap-overrides button.deets {
+#bootstrap-overrides button.deets, #bootstrap-overrides input{
     padding: 6px 75px;
     background: white;
     opacity: .8;
     font-weight: 800
 }
 
-button.deets:focus {
+#boostrap-overrides button.deets:focus, button.shelf-button:focus, button.review-button:focus, button.shelf-button:active {
     outline-color: gray;
     outline-width: medium;
+    outline:gray;
 }
 
+#bootstrap-overrides button, .form-control:focus {
+    border-color: #cdcdcd;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(160, 160, 160, 0.6);
+    outline: gray;
+}
 button.deets a:focus {
     outline-color: #C06014;
     outline-width: medium;
+}
+
+div .matches {
+    text-align: center;
+    border-top: 1px solid #cdcdcd;
+    height: 140px;
+}
+.matches img {
+    margin-top: 15%;
+    margin-right: 3%;
+}
+
+.book_deets {
+    margin-top: 5%;
+}
+
+.book-desc {
+    height:290px;
+    overflow:scroll;
+}
+
+.availability {
+    margin-right:3%;
+    margin-bottom: 5%;
+}
+
+.home {
+    text-align: center;
+}
+
+.challenge-div {
+    padding-left:5%;
+    padding-bottom: 5%;
+    min-height: 550px;
+}
+
+img.pic {
+    max-width:1170px;
+    margin-left:-15px;
+    margin-top: -20px;
+    opacity: .75;
+}
+
+.library-div {
+    padding-left:5%;
+    padding-bottom: 5%;
+}
+
+#challenge-form {
+    margin-left: 25%;
+}
+
+#user-reviews {
+    margin-left: 35%;
+    margin-top: 5%;
+}
+
+.libraries {
+    margin-bottom: 5%;
+}
+
+.libraries form input {
+    margin-top: 2%;
+}
+
+span.logout a {
+    line-height: 50px;
 }

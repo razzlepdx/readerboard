@@ -1,21 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
+<hr>
 <h2><a href="{{ book['edition']['gr_url']}}" target="_blank">{{ book["title"] }}</a></h2>
 <h4>{{ book["author_name"] }}</h4>
 
-<div>
-    <img src="{{ book['edition']['pic_url'] }}">
+<div class="row book_deets">
+    <div class="col-lg-3">
+            <img src="{{ book['edition']['pic_url'] }}">
+            <h4> Page count: {{ book['edition']['num_pages'] }}</h4>
+            <h4> Publisher: {{ book['edition']['publisher'] }}</h4>
+            <h4> Date published: {{ book['edition']['date']}}</h4>
+    </div>
+    <div class="col-lg-9 book-desc">
+        <h4> {% autoescape false %}{{ book['description']}} {% endautoescape %} </h4>
+    </div>
 </div>
+<hr>
+<div class="row">
+    <div class="col-lg-6 center">
+            <button id="shelf-button" style="width:98%">Shelve this book</button>
+    </div>
+    <div class="col-lg-6 center">
+          <button id="review-button" style="width:98%">Add a Review</button>
+    </div>
 
-<h4> Page count: {{ book['edition']['num_pages'] }}</h4>
-<h4> Publisher: {{ book['edition']['publisher'] }}</h4>
-<h4> Date published: {{ book['edition']['date']}}</h4>
-<h4> Description: {% autoescape false %}{{ book['description']}} {% endautoescape %} </h4>
-<div>
-    <button id="shelf-button">Shelve this book</button>
-    <button id="review-button">Add a Review</button>
     <div id="user-shelves" class="hidden2">
         <form action='/shelve_book' method='POST'>
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
@@ -65,26 +74,51 @@
         </form>
     </div>
 </div>
-<h3>Availability at local library:</h3>
-{% if lib_copies %}
-    <p>Copies Available: {{ lib_copies['available'] }}</p>
-    <p>Number of Holds: {{ lib_copies['holds'] }}</p>
-    <p>Total Copies Owned: {{ lib_copies['copies'] }}</p>
-{% else %}
-    <p>No copies found at the library!</p>
-{% endif %}
-<h3>Availability from Goodreads friends:</h3>
+<hr>
+<div class="row availability">
+    <div class="col-lg-6">
+        <h3>Availability at local library:</h3>
+        {% if lib_copies %}
+            <table class="table">
+                <tr>
+                    <td>Copies available for checkout:</td>
+                    <td>{{ lib_copies['available'] }}</td>
+                </tr>
+                <tr>
+                    <td>Number of holds:</td>
+                    <td>{{ lib_copies['holds'] }}</td>
+                </tr>
+                <tr>
+                    <td>Total copies in library system:</td>
+                    <td>{{ lib_copies['copies'] }}</td>
+                </tr>
+            </table>
+        {% else %}
+            <table class="table">
+                <tr>
+                    <td>No copies found at the library!</td>
+                </tr>
+            </table>
 
-{# Friends that have marked this book as read go here, along with their star rating #}
-{% if matches %}
-    {% for match in matches %}
-        <div>
-            <img src="{{ match[0] }}">
-            <p><a href="{{ match[3] }}">{{ match[1] }}</a></p>
-            <p>Shelf: {{ match[2].title()}}</p>
-        </div>
-    {% endfor %}
-{% else %}
-    <p>It looks like none of your friends have read this book yet!</p>
-{% endif %}
+        {% endif %}
+    </div>
+    <div class="col-lg-6">
+        <h3>Availability from Goodreads friends:</h3>
+        {# Friends that have marked this book as read go here, along with their star rating #}
+        {% if matches %}
+            <div class="row">
+            {% for match in matches %}
+                <div class="col-lg-4 matches">
+                    <img src="{{ match[0] }}" class="match">
+                    <p><a href="{{ match[3] }}">{{ match[1] }}</a></p>
+                    <!-- <p>Shelf: {{ match[2].title()}}</p> -->
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p>It looks like none of your friends have read this book yet!</p>
+        {% endif %}
+    </div>
+    </div>
+
 {% endblock %}
