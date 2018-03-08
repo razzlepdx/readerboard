@@ -41,6 +41,14 @@ body {
     max-width: 22.2%;
     background: #cdcdcd;
 }
+
+.book-display-shelf {
+    text-align:center;
+    margin: 0 0 2% 2%;
+    min-height: 250px;
+    max-width: 22.2%;
+    background: #cdcdcd;
+}
 .book-pane {
     background: white;
     text-align: center;
@@ -52,6 +60,13 @@ body {
 }
 
 .book-pane h4 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    display: block;
+}
+.book-display-shelf h5 {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -174,4 +189,12 @@ img.pic {
 
 span.logout a {
     line-height: 50px;
+}
+
+#user-shelf-show form {
+    margin-left: 38%;
+    margin-top:5%;
+}
+#user-shelf-show form select {
+    width:275.69px;
 }

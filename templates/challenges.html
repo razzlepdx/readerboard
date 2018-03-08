@@ -31,15 +31,18 @@
     <div class='col-lg-6'>
         <h2>{{ challenge.name }}</h2>
         <h5>Current progress:</h5>
-        <div class="challenge-chart">
+        <h2 style="color:#C06014">5/6 completed</h2>
+<!--         <div class="challenge-chart">
             <canvas class="barChart" data-challenge-id="{{ challenge. chal_id }}"></canvas>
             <div id="challengeLegend" class="chart-legend"></div>
-        </div>
+        </div> -->
         <div>
-        <h5>Started: {{ challenge.start_date }}</h5>
-        <h5>Ending: {{ challenge.end_date }}</h5>
+        <h5>Started: January 1, 2018{# {{ challenge.start_date }} #}</h5>
+        <h5>Ending: January 31, 2018{# {{ challenge.end_date }} #}</h5>
         <h5>Description:</h5>
-        <p>{{ challenge.description }}</p>
+        <span><i>{{ challenge.description }}</i></span>
+        <br />
+        <br />
         {# <h5>Books counted towards this challenge: </h5> #}
         {% for book in challenge.books %}
             <div>

@@ -1,12 +1,15 @@
 'use strict';
 
 $('#challenge-form').on('click', showChallengeForm);
-$('#shelf-button').on('click', showShelvesDiv);
+$('#shelf-button').on('click', function () {
+    console.log('clicked!');
+    showShelvesDiv();
+});
 $('#review-button').on('click', showReviewsDiv);
 $('#shelf-select').on('click', showShelfSelect);
 
 function showShelvesDiv(){
-    $('#user-shelves').toggle("hidden2");
+    $('#user-shelf-show').toggle("hidden2");
 }
 
 function showReviewsDiv(){

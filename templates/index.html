@@ -60,11 +60,31 @@
     {% endif %}
 
     {% if shelfbooks|length > 0 %}
-        <div>
+        <div class="row">
             {% for book in shelfbooks %}
+                <div class="book-display-shelf col-lg-3 col-offset-2">
+     <!--                <div class="book-pane">
+                        <h4>
+                            <a href="http://goodreads.com/book/show/{{ book['book_id'] }}" target="_blank" title="{{ book['title'] }}">
+                                {% autoescape false %}
+                                    {{ book["title"] }}
+                                {% endautoescape %}
+                            </a>
+                        </h5>
+                    <h6>{{ book["author_fname"] }}</h6>
+                    </div> -->
+
+                    <img src="{{ book['image_url']}}" alt="{{ book['title'] }}" title="{{ book['title'] }}"><br>
+                <!--     <button class="deets">
+                        <a href="/book_detail/{{ book['book_id'] }}">
+                            See Details
+                        </a>
+                    </button> -->
+
                 <img src="{{ book.pic_url }}" />
-                <p><a href="/book_detail/{{ book.gr_id }}">{{ book.book.title }}</a></p>
+                <h5><a href="/book_detail/{{ book.gr_id }}">{{ book.book.title }}</a></h5>
                 <p>{{book.book.author_name}}</p>
+                </div>
             {% endfor %}
         </div>
     {% endif %}

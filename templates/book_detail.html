@@ -6,13 +6,13 @@
 <h4>{{ book["author_name"] }}</h4>
 
 <div class="row book_deets">
-    <div class="col-lg-3">
+    <div class="col-lg-3" style="border-right:1px solid #cdcdcd" style="padding-left:3%">
             <img src="{{ book['edition']['pic_url'] }}">
             <h4> Page count: {{ book['edition']['num_pages'] }}</h4>
             <h4> Publisher: {{ book['edition']['publisher'] }}</h4>
             <h4> Date published: {{ book['edition']['date']}}</h4>
     </div>
-    <div class="col-lg-9 book-desc">
+    <div class="col-lg-9 book-desc" style="padding-left:5% padding-right:3%">
         <h4> {% autoescape false %}{{ book['description']}} {% endautoescape %} </h4>
     </div>
 </div>
@@ -25,26 +25,19 @@
           <button id="review-button" style="width:98%">Add a Review</button>
     </div>
 
-    <div id="user-shelves" class="hidden2">
-        <form action='/shelve_book' method='POST'>
+    <div id="user-shelf-show" class="hidden2">
+        <form action='/shelve_book' method='POST' style="margin-left:33% margin-top:3%">
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
             <select name="shelf">
                 {% for shelf in user.shelves %}
-                    {# Consider using this block again after Bootstrap is implemented #}
-                    {# {% if shelf.exclusive %} #}
-                        {#<input type="radio" name="exclusive"
-                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }} </option>
-                    {% else %}
-                       <input type="checkbox" name="shelf_name"
-                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br> #}
-                    {# {% endif %} #}
-
                     <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option>
                 {% endfor %}
             </select>
-            <input type='submit' value='Add to my Shelves' />
+            <br>
+            <input type='submit' value='Add to my Shelves' style="margin-top:2%" />
         </form>
     </div>
+
     <div id="user-reviews" class="hidden2">
         <form action="/review_book", method="POST">
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
