@@ -2,27 +2,12 @@
 
 {% block content %}
 
-    {# <div class="row search">
-      <div class="col-sm-8 col-sm-offset-2">
-        <form role="form" action="/book_search", method="POST">
-            <div class="input-group">
-              <input type="text" class="form-control input-sm" name="search" placeholder="Search Goodreads here">
-              <span class="input-group-btn">
-                <button class="btn btn-default btn-sm" type="submit"><span class="glyphicon glyphicon-search"></span></button>
-              </span>
-            </div>
-        </form>
-      </div>
-    </div> #}
-<!--     <form action="/book_search", method="POST">
-        <input type="text" name="search" placeholder="Enter name of book to search here">
-        <input type="submit" value="Search!">
-    </form> -->
 <hr>
+    <!-- display list of book search results
+    ======================================== -->
     {% if books %}
         <div class="row">
         {% for book in books %}
-
                 <div class="book-display col-lg-3 col-offset-2">
                     <div class="book-pane">
                         <h4>
@@ -48,39 +33,27 @@
         <h5>Sorry, we couldn't find any books with that title.</h5>
     {% endif %}
 
+    <!-- Retrieve friends list from goodreads
+    ========================================= -->
     {% if acct.user.friends|length == 0 %}
         <div>
             <button><a href="/get_friends">Get my friends from Goodreads!</a></button>
         </div>
     {% endif %}
+
+    <!-- Display or retrieve all books from a particular shelf
+    ========================================================== -->
     {% if acct.user.shelves[0].editions|length == 0 %}
         <div>
             <button><a href="/get_books">Get my books from Goodreads!</a></button>
         </div>
     {% endif %}
-
     {% if shelfbooks|length > 0 %}
         <div class="row">
             {% for book in shelfbooks %}
                 <div class="book-display-shelf col-lg-3 col-offset-2">
-     <!--                <div class="book-pane">
-                        <h4>
-                            <a href="http://goodreads.com/book/show/{{ book['book_id'] }}" target="_blank" title="{{ book['title'] }}">
-                                {% autoescape false %}
-                                    {{ book["title"] }}
-                                {% endautoescape %}
-                            </a>
-                        </h5>
-                    <h6>{{ book["author_fname"] }}</h6>
-                    </div> -->
-
-                    <img src="{{ book['image_url']}}" alt="{{ book['title'] }}" title="{{ book['title'] }}"><br>
-                <!--     <button class="deets">
-                        <a href="/book_detail/{{ book['book_id'] }}">
-                            See Details
-                        </a>
-                    </button> -->
-
+                <img src="{{ book['image_url']}}" alt="{{ book['title'] }}" title="{{ book['title'] }}">
+                <br>
                 <img src="{{ book.pic_url }}" />
                 <h5><a href="/book_detail/{{ book.gr_id }}">{{ book.book.title }}</a></h5>
                 <p>{{book.book.author_name}}</p>

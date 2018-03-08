@@ -1,5 +1,7 @@
 'use strict';
 
+// event click listeners for various buttons
+//==========================================
 $('#challenge-form').on('click', showChallengeForm);
 $('#shelf-button').on('click', function () {
     console.log('clicked!');
@@ -8,6 +10,8 @@ $('#shelf-button').on('click', function () {
 $('#review-button').on('click', showReviewsDiv);
 $('#shelf-select').on('click', showShelfSelect);
 
+// callback functions for click listeners
+//=======================================
 function showShelvesDiv(){
     $('#user-shelf-show').toggle("hidden2");
 }

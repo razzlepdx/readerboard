@@ -218,7 +218,7 @@ def view_user_shelf():
     """ Responds to post request from landing page form and renders a list of
     all books on the selected shelf for an authorized user. """
 
-    # FIXME - running into encoding errors with certain shelves
+    # FIXME - running into encoding errors with certain shelves - WHY?
     shelf_name = request.form.get('shelf')
     acct = get_current_account(session['acct'])
     user = get_user_by_acct(acct)

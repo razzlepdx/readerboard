@@ -2,6 +2,8 @@
 
 {% block content %}
 <hr>
+<!-- Main Book info
+=================== -->
 <h2><a href="{{ book['edition']['gr_url']}}" target="_blank">{{ book["title"] }}</a></h2>
 <h4>{{ book["author_name"] }}</h4>
 
@@ -17,6 +19,8 @@
     </div>
 </div>
 <hr>
+<!-- Buttons to submit to GR
+============================ -->
 <div class="row">
     <div class="col-lg-6 center">
             <button id="shelf-button" style="width:98%">Shelve this book</button>
@@ -24,7 +28,8 @@
     <div class="col-lg-6 center">
           <button id="review-button" style="width:98%">Add a Review</button>
     </div>
-
+<!-- Shelve a book on Goodreads form
+==================================== -->
     <div id="user-shelf-show" class="hidden2">
         <form action='/shelve_book' method='POST' style="margin-left:33% margin-top:3%">
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
@@ -37,7 +42,8 @@
             <input type='submit' value='Add to my Shelves' style="margin-top:2%" />
         </form>
     </div>
-
+<!-- Book review submission form
+================================ -->
     <div id="user-reviews" class="hidden2">
         <form action="/review_book", method="POST">
             <input type='hidden' name='book' value='{{ book["edition"]["gr_id"] }}' />
@@ -68,6 +74,8 @@
     </div>
 </div>
 <hr>
+<!-- Availability at local library
+==================================-->
 <div class="row availability">
     <div class="col-lg-6">
         <h3>Availability at local library:</h3>
@@ -95,6 +103,8 @@
 
         {% endif %}
     </div>
+<!-- Availability from Goodreads friends:
+========================================= -->
     <div class="col-lg-6">
         <h3>Availability from Goodreads friends:</h3>
         {# Friends that have marked this book as read go here, along with their star rating #}

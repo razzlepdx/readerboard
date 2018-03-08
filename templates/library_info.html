@@ -2,6 +2,8 @@
 
 {% block content %}
 <hr>
+<!-- library dropdown form and submission button
+================================================ -->
 <div class="row libraries">
     <div class="library-div col-lg-6">
         <h4>Select your library system:</h4>
@@ -34,6 +36,8 @@
             <input type="submit" value="Select Library" />
         </form>
     </div>
+    <!-- Display current library system
+    =================================== -->
     {% if library %}
         <div class="col-lg-6">
             <h4>

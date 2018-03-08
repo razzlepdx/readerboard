@@ -3,13 +3,19 @@
     <head>
         <title>Readerboard</title>
         <meta charset="UTF-8">
+
+        <!-- CSS and fonts
+        ================== -->
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="../static/css/styles.css">
+        <link href="https://fonts.googleapis.com/css?family=Nixie+One" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Lato:700" rel="stylesheet">
+
+        <!-- js imports: Chart.js, fontawesome, jQuery, Bootstrap
+        ========================================================= -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.js">
         </script>
         <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
-        <link href="https://fonts.googleapis.com/css?family=Nixie+One" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Lato:700" rel="stylesheet">
         <script
             src="https://code.jquery.com/jquery-3.3.1.js"
             integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
@@ -17,8 +23,10 @@
         </script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     </head>
-    <body id="bootstrap-overrides">
 
+    <body id="bootstrap-overrides">
+        <!-- Navbar here
+        ================ -->
         <nav class="navbar navbar-default">
           <div class="container-fluid">
             <div class="navbar-header">
@@ -36,98 +44,98 @@
               </span>
           </div>
         </nav>
+        <!-- Main container
+        =================== -->
+        <div class="container">
+            <div class="row">
+                <div class="alert text-center" role="alert">
+                {% with messages = get_flashed_messages() %}
 
+                    {% if messages %}
+                        <ul class=flashes>
 
-<!--         <div class="container"> -->
-            <div class="container">
-                <div class="row">
-                    <div class="alert text-center" role="alert">
-                    {% with messages = get_flashed_messages() %}
+                        {% for message in messages %}
 
-                        {% if messages %}
-                            <ul class=flashes>
+                            <p>{{ message }}</p>
 
-                            {% for message in messages %}
+                        {% endfor %}
 
-                                <p>{{ message }}</p>
-
-                            {% endfor %}
-
-                            </ul>
-                        {% endif %}
-
-                    {% endwith %}
-                    </div>
-                </div>
-
-
-                <div class="row search">
-                  <div class="col-sm-8 col-sm-offset-2">
-                    <form role="form" action="/book_search", method="POST">
-                        <div class="input-group">
-                          <input type="text" class="form-control input-sm" name="search" placeholder="Search Goodreads: Enter title, author or ISBN">
-                          <span class="input-group-btn">
-                            <button class="btn btn-default btn-sm" type="submit"><span class="glyphicon glyphicon-search"></span></button>
-                          </span>
-                        </div>
-                    </form>
-                  </div>
-                </div>
-                <div class="row home">
-                    <div class="col-lg-4">
-                        <h4><a href="#" id="shelf-select">My Shelves</a></h4>
-
-
-                    </div>
-                    <div class="col-lg-4">
-                        <h4><a href="/library">Choose a Library</a></h4>
-                    </div>
-                    <div class="col-lg-4">
-                        <h4><a href="/challenges">My Challenges</a></h4>
-                    </div>
-                </div>
-
-                 <div>
-                    {% if acct.user.shelves|length == 0 %}
-                    <div>
-                        <button>
-                            <a href="/get_shelves/{{ acct.user.gr_id }}">
-                                Get my shelves from Goodreads!
-                            </a>
-                        </button>
-                    </div>
-                    {% else %}
-                        <div id="shelf-form" class="hidden2" style="margin-left:5%">
-                            <div id="user-shelves">
-                            <h5>Pick a shelf and see details about your books</h5>
-
-                                <form action='/view_shelf' method='POST'>
-                                    <select name="shelf">
-                                        {% for shelf in acct.user.shelves %}
-                                            {#<input type="radio" name="exclusive"
-                                            <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }} </option>
-                                            <input type="checkbox" name="shelf_name" #}
-                                            <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
-                                        {% endfor %}
-                                    </select>
-                                    <br>
-                                    <input type='submit' value='View Shelf' style="margin-top:1%"/>
-                                </form>
-                            </div>
-                        </div>
+                        </ul>
                     {% endif %}
-                </div>
-                {% block content%}
 
-                {% endblock %}
-                {% if not search %}
-                    {% if not shelfbooks %}
-                        <img class="pic" src="../static/img/library.jpg">
-                    {% endif %}
+                {% endwith %}
+                </div>
+            </div>
+            <!-- Search bar start
+            ===================== -->
+            <div class="row search">
+              <div class="col-sm-8 col-sm-offset-2">
+                <form role="form" action="/book_search", method="POST">
+                    <div class="input-group">
+                      <input type="text" class="form-control input-sm" name="search" placeholder="Search Goodreads: Enter title, author or ISBN">
+                      <span class="input-group-btn">
+                        <button class="btn btn-default btn-sm" type="submit"><span class="glyphicon glyphicon-search"></span></button>
+                      </span>
+                    </div>
+                </form>
+              </div>
+            </div>
+            <!-- Main Navigation links
+            ========================== -->
+            <div class="row home">
+                <div class="col-lg-4">
+                    <h4><a href="#" id="shelf-select">My Shelves</a></h4>
+                </div>
+                <div class="col-lg-4">
+                    <h4><a href="/library">Choose a Library</a></h4>
+                </div>
+                <div class="col-lg-4">
+                    <h4><a href="/challenges">My Challenges</a></h4>
+                </div>
+            </div>
+            <!-- Import Shelves OR button to select to see books on shelf
+            ============================================================= -->
+            <div>
+                {% if acct.user.shelves|length == 0 %}
+                <div>
+                    <button>
+                        <a href="/get_shelves/{{ acct.user.gr_id }}">
+                            Get my shelves from Goodreads!
+                        </a>
+                    </button>
+                </div>
+                {% else %}
+                    <div id="shelf-form" class="hidden2" style="margin-left:5%">
+                        <div id="user-shelves">
+                        <h5>Pick a shelf and see details about your books</h5>
+
+                            <form action='/view_shelf' method='POST'>
+                                <select name="shelf">
+                                    {% for shelf in acct.user.shelves %}
+                                        {#<input type="radio" name="exclusive"
+                                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }} </option>
+                                        <input type="checkbox" name="shelf_name" #}
+                                        <option name="shelf" value="{{ shelf.name }}" />{{ shelf.name }}</option> </br>
+                                    {% endfor %}
+                                </select>
+                                <br>
+                                <input type='submit' value='View Shelf' style="margin-top:1%"/>
+                            </form>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
-
-        <!-- </div> -->
+            {% block content%}
+            <!-- Display book image whenever page is not search results or
+            books from a user's shelf
+            ========================== -->
+            {% endblock %}
+            {% if not search %}
+                {% if not shelfbooks %}
+                    <img class="pic" src="../static/img/library.jpg">
+                {% endif %}
+            {% endif %}
+        </div>
 
 
         <!-- Script files

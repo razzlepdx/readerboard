@@ -3,6 +3,8 @@
 {% block content %}
 <hr>
     <div class="challenge-div row">
+        <!-- Title and challenge creation form
+        ====================================== -->
         <div class="col-lg-6">
             <h2 >Personal Reading Challenges</h2>
             <button id="challenge-form">Add new challenge!</button>
@@ -26,7 +28,8 @@
             </div>
         </div>
 
-
+    <!-- List of user challenges
+    ============================ -->
     {% for challenge in user.challenges %}
     <div class='col-lg-6'>
         <h2>{{ challenge.name }}</h2>
