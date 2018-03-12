@@ -52,30 +52,39 @@ A full list of project dependencies can be found in [requirements.txt](./require
 
 | MVP Goals | Status |
 | --- |--- |
-| User can login and access GR account information via OAuth. | :white_check_mark: |
-|User can see the books on their shelves. | :white_check_mark:|
-|User can add a book to their shelves, and changes will be reflected in their goodreads account. | :white_check_mark: |
-| User can search for a book, and see if GR friends have marked it as read. |:white_check_mark:
-| User can search for a book and see it's availability as an ebook at the local library. |:white_check_mark: |
-| User can see their reading challenge progress. | :white_check_mark: |
-| User can add an additional reading challenge to their account. | :white_check_mark: |
-| User can submit a book review. |:white_check_mark: |
-| User can see data about their reading habits and history. | :construction: |
+| User can login and access GR account information via OAuth. | Completed :white_check_mark: |
+|User can see the books on their shelves. | Completed :white_check_mark:|
+|User can add a book to their shelves, and changes will be reflected in their goodreads account. | Completed :white_check_mark: |
+| User can search for a book, and see if GR friends have marked it as read. | Completed :white_check_mark:
+| User can search for a book and see it's availability as an ebook at the local library. | Completed :white_check_mark: |
+| User can see their reading challenge progress. | Completed :white_check_mark: |
+| User can add an additional reading challenge to their account. | Completed :white_check_mark: |
+| User can submit a book review. | Completed :white_check_mark: |
+| User can see data about their reading habits and history. | In progress :construction: |
 
 ## 2.0 Goals
 
-- Finish Deployment
-- Keep working on weird bugs within the current features
-- Get testing coverage up to 80%
-- Optimize the data retrieval and data update processes with celery/celerybeat
-- Incorporate the Overdrive Circulation API so users can check out a book or place a copy on hold from within the app
-- Add a "watch list" feature that alerts the user when a book added to their list drops below a specific price threshold (Will use Twilio and Amazon Product APIs for this)
-- convert the reading history page to React
-- Add more data vis with Chart.js
+##### Improvements
+
+| Goal Description | Status |
+| --- | --- |
+| Finish Deployment | On Hold |
+| Keep working on weird bugs within the current features | In progress :construction: |
+| Get testing coverage up to 80% | In progress :construction: |
+| Optimize the data retrieval and data update processes with celery/celerybeat | On Hold |
+
+##### New Features
+
+| Goal Description | Status |
+| --- | --- |
+| Incorporate the Overdrive Circulation API so users can check out a book or place a copy on hold from within the app | On Hold |
+| Add a "watch list" feature that alerts the user when a book added to their list drops below a specific price threshold (Will use Twilio and Amazon Product APIs for this) | On Hold |
+| convert the reading history page to React | On Hold |
+| Add more data vis with Chart.js | On Hold |
 
 ## Testing Coverage
 
-Unit and integration tests written with the python `unittest` library.  Current coverage %: -- oops!
+Unit and integration tests written with the python `unittest` library.  Testing is still in progress.
 
 ## Project Structure
 #### server.py - Core of the flask app, lists all routes
