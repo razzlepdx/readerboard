@@ -27,10 +27,7 @@ from helpers import (email_is_valid,
                      get_lib_products,
                      search_lib_for_copies,
                      get_library_details,
-                     get_challenge_data,
-                     #make_datetime,
-                     #review_is_private
-                     #get_user_by_gr_id
+                     get_challenge_data
                      )
 
 from parser import (book_search_results,
@@ -38,10 +35,8 @@ from parser import (book_search_results,
                     get_acct_id,
                     get_user_friends,
                     get_all_shelves,
-                    # get_books_from_shelf,
                     get_all_books_for_user,
-                    get_all_books_from_friends,
-                    # create_books_editions
+                    get_all_books_from_friends
                     )
 
 app = Flask(__name__)

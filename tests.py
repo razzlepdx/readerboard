@@ -1,7 +1,8 @@
 import unittest
 
 from server import app
-from model import db, connect_to_db, User, Account
+# from model import db, connect_to_db, User, Account
+
 
 class UserSignUpTests(unittest.TestCase):
     "Tests for a new user to Readerboard."
@@ -16,7 +17,7 @@ class UserSignUpTests(unittest.TestCase):
         """ Tests that an unauthorized user is redirected to signup page. """
         result = self.client.get('/', follow_redirects=True)
         self.assertIn("Enter your email here", result.data)
-        self.assertNotIn("ewraejwklarjewkla;", result.data)
+        self.assertNotIn("Search Goodreads", result.data)
 
-if  __name__ == "__main__":
+if __name__ == "__main__":
     unittest.main()
