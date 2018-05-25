@@ -94,7 +94,7 @@ class Review(db.Model):
     review_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     start_read_date = db.Column(db.DateTime, nullable=True)
     end_read_date = db.Column(db.DateTime, nullable=True)
-    gr_url = db.Column(db.String(150), unique=True, nullable=True)  # TODO: find out if this returns URL
+    gr_url = db.Column(db.String(150), unique=True, nullable=True)
     private = db.Column(db.Boolean, default=False, nullable=False)
 
     book = db.relationship("Book", backref="reviews")

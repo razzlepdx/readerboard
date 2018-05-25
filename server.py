@@ -465,8 +465,10 @@ def hello_world():
 #========
 
 if __name__ == "__main__":
+
     app.debug = True
     connect_to_db(app)
+
     # logger setup
     logging.basicConfig(filename='error.log', level=logging.INFO)
     console = logging.StreamHandler()
@@ -474,6 +476,7 @@ if __name__ == "__main__":
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
+
     # run app, populate cache with temp token
     app.run(host="0.0.0.0")
     check_ovrdrv_token(OVRDRV_KEY, OVRDRV_SECRET)
